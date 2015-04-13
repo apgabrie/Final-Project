@@ -6,6 +6,7 @@
 (define wall-tile-1 (bitmap "images/tiles/wall-tile-1.png"))
 (define ground-tile-1 (bitmap "images/tiles/ground-tile-1.png"))
 (define ground-tile-2 (bitmap "images/tiles/ground-tile-2.png"))
+(define block-tile-1 (bitmap "images/tiles/block-tile-1.png"))
 (define grass-1 (bitmap "images/tiles/grass-1.png"))
 (define mushroom-1 (bitmap "images/tiles/mushroom-1.png"))
 
@@ -17,8 +18,11 @@
 (define w1 (make-tile 1 wall-tile-1))
 (define g1 (make-tile 1 ground-tile-1))
 (define g2 (make-tile 1 ground-tile-2))
+(define b1 (make-tile 1 block-tile-1))
 (define d1 (make-tile 0 grass-1))
 (define d2 (make-tile 0 mushroom-1))
+
+(define ck (make-tile 2 (empty-scene 0 0)))
 
 (define (item-at-num lst num)
   (if (> num 0)
@@ -26,9 +30,10 @@
       (car lst)))
 
 (define (tile-at-xy my-map x y)
-  (if (or (> x (length (car my-map)))
-          (< x 0)
-          (>= y (length my-map))
-          (< y 0))
-          1
-          (tile-type (item-at-num (item-at-num my-map y) x))))
+  (cond ((or (>= x (length (car my-map)))
+             (< x 0)
+             (>= y (length my-map)))
+         1)
+        ((< y 0)
+         0)
+        (else (tile-type (item-at-num (item-at-num my-map y) x)))))
