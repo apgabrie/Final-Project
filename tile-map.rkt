@@ -34,11 +34,6 @@
 
 (define ck (make-tile 2 (empty-scene 0 0)))
 
-(define (item-at-num lst num)
-  (if (> num 0)
-      (item-at-num (cdr lst) (- num 1))
-      (car lst)))
-
 (define (tile-at-xy my-map x y)
   (cond ((or (>= x (length (car my-map)))
              (< x 0))
@@ -47,7 +42,7 @@
          3)
         ((< y 0)
          0)
-        (else (tile-type (item-at-num (item-at-num my-map y) x)))))
+        (else (tile-type (list-ref (list-ref my-map y) x)))))
 
 (define (sub-list lst start end)
   (drop (take lst end) start))
