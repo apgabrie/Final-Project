@@ -34,18 +34,4 @@
 
 (define ck (make-tile 2 (empty-scene 0 0)))
 
-(define (tile-at-xy my-map x y)
-  (cond ((or (>= x (length (car my-map)))
-             (< x 0))
-         1)
-        ((>= y (length my-map))
-         3)
-        ((< y 0)
-         0)
-        (else (tile-type (list-ref (list-ref my-map y) x)))))
 
-(define (sub-list lst start end)
-  (drop (take lst end) start))
-
-(define (sub-map my-map start end)
-  (map (lambda (x) (sub-list x start end)) my-map))
