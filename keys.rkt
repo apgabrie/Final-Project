@@ -29,3 +29,6 @@
         ((key=? ke "x")  (set! x-button #f))
         ((key=? ke "shift")  (set! shift-button #f)))
   y)
+
+(define (left-key-not-right-key) (and left-button (not right-button)))
+(define (right-key-not-left-key) (and (not left-button) right-button))

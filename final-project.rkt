@@ -72,10 +72,18 @@
           (else (list map-offset tiles-on-left)))))
 
 (define (side-scroll player map-offset tiles-on-left)
-  (cond ((>= (- (sprite-realX (car player)) (+ map-offset (* 64 tiles-on-left))) 352)
-         (side-scroll-going-right (car player) map-offset tiles-on-left))
-        ((< (- (sprite-realX (car player)) (+ map-offset (* 64 tiles-on-left))) 288)
-         (side-scroll-going-left (car player) map-offset tiles-on-left))
+  (cond #|((>= (- (sprite-realX player) (+ map-offset (* 64 tiles-on-left))) 352)
+         (side-scroll-going-right player map-offset tiles-on-left))
+        ((< (- (sprite-realX player) (+ map-offset (* 64 tiles-on-left))) 288)
+         (side-scroll-going-left player map-offset tiles-on-left))|#
+        ((and (is-dir? player "right") (>= (- (sprite-realX player) (+ map-offset (* 64 tiles-on-left))) 252))
+         (side-scroll-going-right player map-offset tiles-on-left))
+        ((and (is-dir? player "right") (< (- (sprite-realX player) (+ map-offset (* 64 tiles-on-left))) 188))
+         (side-scroll-going-left player map-offset tiles-on-left))
+        ((and (is-dir? player "left") (>= (- (sprite-realX player) (+ map-offset (* 64 tiles-on-left))) 452))
+         (side-scroll-going-right player map-offset tiles-on-left))
+        ((and (is-dir? player "left") (< (- (sprite-realX player) (+ map-offset (* 64 tiles-on-left))) 388))
+         (side-scroll-going-left player map-offset tiles-on-left))
         (else (list map-offset tiles-on-left))))
 
 (define (update y)
@@ -103,37 +111,56 @@
                  (else (change-world-inventory-sprites y new-sprites)))))
         ; PLAYING
         ((eq? (get-state y) "playing")
-         ;(side-scroll (get-sprites y))
          (let* ((new-sprites (foldr (lambda (x y) (cond ((eq? (car x) "kill-me") y)
                                                         ((eq? (car x) "pop-me") (append (cdr x) y))
                                                         (else (cons x y)))) 
                                     nil
-                                    (map (lambda (sprite) ((sprite-update sprite) sprite)) (get-sprites y))))
-                (player (filter player? new-sprites))
+                                    (map (lambda (sprite) (if (and (> (- (sprite-realX sprite) (get-map-offset y) (* 64 (get-tiles-on-left y))) -64)
+                                                                   (< (- (sprite-realX sprite) (get-map-offset y) (* 64 (get-tiles-on-left y))) 704))
+                                                              ((sprite-update sprite) sprite) 
+                                                              sprite))
+                                           (get-sprites y))))
+                (player (car (filter player? new-sprites)))
+                (enemies-colliding-w-player (enemy-collision new-sprites))
+                (damage (if (or (is-state? player "get hurt") (null? enemies-colliding-w-player)) 0 (sprite-damage (car enemies-colliding-w-player))))
+                (player-maybe-hurt (if (null? enemies-colliding-w-player) 
+                                       player 
+                                       (change-sprite-velY (change-sprite-frame-counter (change-sprite-state player "get hurt") 100) 10)))
+                (new-player (cond ((is-state? player-maybe-hurt "get hurt") player-maybe-hurt)
+                                  ((and (not (is-state? player "jump")) (left-key-not-right-key)) (change-sprite-state (change-sprite-direction player "left") "walk"))
+                                  ((and (not (is-state? player "jump")) (right-key-not-left-key)) (change-sprite-state (change-sprite-direction player "right") "walk"))
+                                  ((not (is-state? player "jump")) (change-sprite-state player "stand"))
+                                  (else player)))
+                
+                ; prevents projectiles being shoot too close together
+                (new-wait-timer (cond ((and x-button (= (get-wait-counter y) 0))
+                                       2)
+                                      ((> (get-wait-counter y) 0)
+                                       (- (get-wait-counter y) 1))
+                                      (else 0)))
+                
                 (enemies (filter enemy? new-sprites))
                 (projectiles (filter projectile? new-sprites))
-                (items (filter item? new-sprites))
-                (new-projectiles (filter (lambda (x) (not (sprite-collides-over-list? x enemies))) projectiles))
-                (enemies-colliding-w-player (enemy-collision new-sprites))
-                (maybe-next-stage (filter (lambda (x) (sprites-collide? (car player) x)) new-sprites))
+                (projectiles-not-touching-enemies (filter (lambda (x) (not (sprite-collides-over-list? x enemies))) projectiles))
+                (new-projectiles (if (and x-button (= (get-wait-counter y) 0))
+                                     (append projectiles-not-touching-enemies (shoot-weapon player))
+                                     projectiles-not-touching-enemies))
+                
                 (enemies-after-projectiles (if (null? projectiles)
                                                enemies
                                                (projectile-collisions projectiles enemies)))
-                (new-health (if (or (is-state? (car player) "get hurt") (null? enemies-colliding-w-player)) 0 (sprite-damage (car enemies-colliding-w-player))))
+                (items (filter item? new-sprites))
+                (maybe-next-stage (filter (lambda (x) (sprites-collide? player x)) new-sprites))
+                
                 (side-scroll-values (side-scroll player (get-map-offset y) (get-tiles-on-left y)))
                 (new-map-offset (first side-scroll-values))
-                (new-tiles-on-left (second side-scroll-values))
-                )
+                (new-tiles-on-left (second side-scroll-values)))
            (if (member "item-next-stage" maybe-next-stage (lambda (x y) (is-type? x y)))
                (make-world "next stage wait" (get-map y) new-sprites (get-bg y) new-map-offset new-tiles-on-left (get-health y) (get-exp y) (get-inventory-sprites y) 65)
                (make-world (get-state y) (get-map y) 
                            ; new sprite-list
-                           (if (null? enemies-colliding-w-player)
-                               (append enemies-after-projectiles new-projectiles player items)
-                               (append enemies-after-projectiles new-projectiles (list (change-sprite-jumpspeed 
-                                                                                        (change-sprite-frame-counter 
-                                                                                         (change-sprite-state (car player) "get hurt") 100) 10))  items))
-                           (get-bg y) new-map-offset new-tiles-on-left (- (get-health y) new-health) (get-exp y) (get-inventory-sprites y) (get-wait-counter y)))))
+                           (append enemies-after-projectiles new-projectiles (list new-player) items)
+                           (get-bg y) new-map-offset new-tiles-on-left (- (get-health y) damage) (get-exp y) (get-inventory-sprites y) new-wait-timer))))
         ; TITLE SCREEN
         ((eq? (get-state y) "title screen")
          (let* ((new-sprites (map (lambda (sprite) ((sprite-update sprite) sprite)) (get-sprites y)))
@@ -143,6 +170,8 @@
                   (make-world "playing" 1 sprite-list-two bg-1 (get-map-offset y) (get-tiles-on-left y) (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y)))
                  ((and z-button (is-state? (car cursor) "continue"))
                   (set! z-button #f)
+                  ;(make-world-from-save)
+                  ;(continue)
                   (make-world "playing" (first continue) sprite-list-two bg-1 (get-map-offset y) (get-tiles-on-left y) (second continue) (third continue) (get-inventory-sprites y) (get-wait-counter y)))
                  (else (change-world-sprites y new-sprites)))))
         (else y)))
@@ -161,9 +190,11 @@
         ((eq? (get-state y) "playing")
          (let ((health-width (if (> (get-health y) 0) (get-health y) 0)))
            ; draw background, then draw map into the background, then draw sprites into map, then draw HUD onto the whole thing
-           (place-image/align (place-image/align (place-image/align healthbar 0 0 'left 'top (empty-scene (* 1.37 health-width) 26))
-                                                 103 16 'left 'top
-                                                 HUD)
+           (place-image/align (place-image/align (place-image/align expbar 0 0 'left 'top (empty-scene (* 1.37 (- 100 health-width)) 26))
+                                                 103 50 'left 'top
+                                                 (place-image/align (place-image/align healthbar 0 0 'left 'top (empty-scene (* 1.37 health-width) 26))
+                                                                    103 16 'left 'top
+                                                                    HUD))
                               10 10 'left 'top
                               (draw-sprites (get-sprites y)
                                             (draw-map (choose-map (get-map y) (get-tiles-on-left y)) (get-bg y) (get-map-offset y)) (+ (get-map-offset y) (* 64 (get-tiles-on-left y)))))))
@@ -180,6 +211,7 @@
 (define pause-menu (bitmap "images/menu/pause-menu.png"))
 
 (define healthbar (bitmap "images/healthbar.png"))
+(define expbar (bitmap "images/expbar.png"))
 (define HUD (bitmap "images/HUD.png"))
 (define next-stage-picture (bitmap "images/next-stage.png"))
 
