@@ -119,6 +119,9 @@
 (define (item? sprite)
   (equal? (substring (sprite-type sprite) 0 4) "item"))
 
+(define (exp? sprite)
+  (equal? (substring (sprite-type sprite) 0 3) "exp"))
+
 (define (projectile? sprite)
   (is-type? "projectile" sprite))
 
@@ -127,7 +130,8 @@
 
 (define (spell? sprite)
   (or (is-type? "Bubble" sprite)
-      (is-type? "Weapon 2" sprite)))
+      (is-type? "Weapon 2" sprite)
+      (is-type? "Weapon 3" sprite)))
 
 (define (is-type? the-type sprite)
   (eq? the-type (sprite-type sprite)))
@@ -336,7 +340,10 @@
 (define (projectile-1-and-up sprite)
   (sprite-decay-update (move-right (change-sprite-coords sprite (sprite-realX sprite) (- (sprite-realY sprite) .5)) 4)))
 (define (projectile-2 sprite)
-  (sprite-decay-update (move-left sprite 10)))
+  (let ((new-sprite (jump sprite 0)))
+    (if (equal? new-sprite sprite)
+        (list "kill-me")
+        (sprite-decay-update (move-left new-sprite 10)))))
 
 (define (weapon-one-update sprite)
   (let ((new-sprite (if (eq? (sprite-direction sprite) "right")
@@ -414,11 +421,21 @@
 (define (enemy-four-update-proc sprite)
   (cond ((<= (sprite-health sprite) 0)
          (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 7))
+        ((= (sprite-velY sprite) 4)
+         (list "pop-me"
+               (change-sprite-velY sprite (- (sprite-velY sprite) 1))
+               (make-sprite "enemy-4-projectile" sentinel-projectile-1
+                            (list (sprite-realX sprite) (sprite-realY sprite) 0 10 5 -1) "move-left" projectile-2 sprite-display-image 10 10 127 "left")))
+        ((= (sprite-velY sprite) 2)
+         (list "pop-me"
+               (change-sprite-velY sprite (- (sprite-velY sprite) 1))
+               (make-sprite "enemy-4-projectile" sentinel-projectile-2
+                            (list (sprite-realX sprite) (sprite-realY sprite) 0 10 5 -1) "move-left" projectile-2 sprite-display-image 7 7 127 "left")))
         ((<= (sprite-velY sprite) 0)
          (list "pop-me"
                (change-sprite-velY sprite 120)
-               (make-sprite "enemy-4-projectile" (rectangle 20 20 "solid" "white") 
-                            (list (sprite-realX sprite) (sprite-realY sprite) 0 0 5 -1) "move-left" projectile-2 sprite-display-image 20 20 127 "left")))
+               (make-sprite "enemy-4-projectile" sentinel-projectile-2
+                            (list (sprite-realX sprite) (sprite-realY sprite) 0 10 5 -1) "move-left" projectile-2 sprite-display-image 7 7 127 "left")))
         (else (change-sprite-velY sprite (- (sprite-velY sprite) 1)))))
 
 (define (enemy-six-update-proc sprite)
@@ -459,11 +476,11 @@
     (cond ((and (< new-amount 5) (> new-amount 0))
            (create-exp-help 
             (- new-amount 1)      
-            (append result (list (make-sprite "item-exp-1" star1 (list x y (/ (- (random 12) 6) 3) (+ (random 6) 4) 1) "na" exp-update-proc exp-item-draw 16 16 500 "left")))))
+            (append result (list (make-sprite "exp-1" star1 (list x y (/ (- (random 12) 6) 3) (+ (random 6) 4) 1) "na" exp-update-proc exp-item-draw 16 16 500 "left")))))
           ((>= new-amount 5)
            (create-exp-help 
             (- new-amount 5)      
-            (append result (list (make-sprite "item-exp-5" star1-big (list x y (/ (- (random 6) 3) 2) (+ (random 6) 4) 5) "na" exp-update-proc exp-item-big-draw 25 25 500 "left")))))
+            (append result (list (make-sprite "exp-5" star1-big (list x y (/ (- (random 6) 3) 2) (+ (random 6) 4) 5) "na" exp-update-proc exp-item-big-draw 25 25 500 "left")))))
           (else result)))
   (if (= amount 0)
       (list "kill-me")
@@ -669,9 +686,9 @@
 (define (item-name-from-cursor-state state spells items)
   (cond ((eq? state "position spell 1")
          (sprite-type (first spells)))
-        ((and (>= (length spells) 2)(eq? state "position-spell-2")
+        ((and (>= (length spells) 2)(eq? state "position spell 2")
          (sprite-type (second spells))))
-        ((and (>= (length spells) 3)(eq? state "position-spell-3")
+        ((and (>= (length spells) 3)(eq? state "position spell 3")
          (sprite-type (third spells))))
         ((and (>= (length items) 1) (eq? state "position 1"))
          (sprite-type (first items)))
@@ -688,9 +705,9 @@
 (define (item-text-from-cursor-state state spells items)
   (cond ((eq? state "position spell 1")
          (sprite-state (first spells)))
-        ((and (>= (length spells) 2)(eq? state "position-spell-2")
+        ((and (>= (length spells) 2)(eq? state "position spell 2")
          (sprite-state (second spells))))
-        ((and (>= (length spells) 3)(eq? state "position-spell-3")
+        ((and (>= (length spells) 3)(eq? state "position spell 3")
          (sprite-state (third spells))))
         ((and (>= (length items) 1) (eq? state "position 1"))
          (sprite-state (first items)))
@@ -738,7 +755,11 @@
 (define bubble-spell (bitmap "images/menu/BubbleSpell.png"))
 (define cookie (bitmap "images/menu/cookie.png"))
 
-(define exp-test (bitmap "images/sprites/exp-sprite.png"))
+(define slim-goo-left (bitmap "images/enemies/slim-goo.png"))
+(define sentinel (bitmap "images/enemies/sentinel.png"))
+(define sentinel-projectile-1 (bitmap "images/enemies/sentinel-projectile.png"))
+(define sentinel-projectile-2 (bitmap "images/enemies/sentinel-projectile-2.png"))
+
 
 (define menu-cursor-pos-save (make-sprite "cursor" arrow1 (list 470 84) "save position" pause-cursor-update arrow-cursor-draw 64 64 0 "na")) 
 (define menu-cursor-pos-back (make-sprite "cursor" arrow1 (list 470 160) "back position" pause-cursor-update arrow-cursor-draw 64 64 0 "na"))
@@ -753,19 +774,19 @@
 (define title-sprite-list (list (make-sprite "cursor" arrow1 '(200 275) "start" title-screen-cursor-update arrow-cursor-draw 64 64 0 "left")))
 (define sprite-list-one (list (make-sprite "player" player-stand-right (list 64 320 3 17) "stand" player-update-proc player-draw-proc 64 64 0 "right")
                               ;(make-sprite "enemy-1" (rectangle 64 64 "solid" "red") '(1024 320 0 0 10 5) "walk" enemy-one-update-proc sprite-display-image 64 64 0 "left")
-                              (make-sprite "enemy-3" (rectangle 20 64 "solid" "purple") '(256 320 0 0 10 2) "walk" enemy-three-update-proc sprite-display-image 20 64 0 "left")
-                              (make-sprite "enemy-4" (rectangle 64 64 "solid" "white") '(448 192 0 120 20 3) "shoot" enemy-four-update-proc sprite-display-image 64 64 0 "left")
+                              (make-sprite "enemy-3" slim-goo-left '(656 320 0 0 10 2) "walk" enemy-three-update-proc sprite-display-image 30 64 0 "left")
+                              (make-sprite "enemy-3" slim-goo-left '(556 321 0 0 10 2) "walk" enemy-three-update-proc sprite-display-image 30 64 0 "left")
+                              (make-sprite "enemy-4" sentinel '(823 192 0 120 20 3) "shoot" enemy-four-update-proc sprite-display-image 30 64 0 "left")
                               ;(make-sprite "enemy-6" (rectangle 64 64 "solid" "blue") '(1984 64 0 0 20 5) "stand" enemy-six-update-proc sprite-display-image 64 64 0 "left")
-                              ;(make-sprite "item-next-stage" (rectangle 64 64 "solid" "yellow") '(2240 192 0 0) "float" sprite-null-update sprite-display-image 64 64 0 "left")
-                              (make-sprite "enemy-exp" exp-test '(768 192 0 0 0 1) "na" test-exp-sprite-update sprite-display-image 64 64 0 "left")
-                              (make-sprite "enemy-exp" exp-test '(840 192 0 0 0 1) "na" test-exp-sprite-update sprite-display-image 64 64 0 "left")
-                              ))
+                              (make-sprite "item-next-stage" (rectangle 64 64 "solid" "yellow") '(2140 192 0 0) "float" sprite-null-update sprite-display-image 64 64 0 "left")))
 (define sprite-list-two (list (make-sprite "player" player-stand-right (list 64 320 0 17) "stand" player-update-proc player-draw-proc 64 64 0 "left")
                               (make-sprite "item-next-stage" (rectangle 64 64 "solid" "yellow") '(320 192 0 0) "float" sprite-null-update sprite-display-image 64 64 0 "left")))
 (define sprite-list-three (list (make-sprite "player" player-stand-right (list 64 320 0 17) "stand" player-update-proc player-draw-proc 64 64 0 "left")))
 
 (define inventory-list-one (list menu-cursor-pos-1
-                                 (make-sprite "Bubble" bubble-spell '(91 119) "A simple spell. Blah blah" sprite-null-update sprite-display-image 64 64 0 "left")))
+                                 (make-sprite "Bubble" bubble-spell '(91 119) "A simple spell. Shoots a bubble to hurt enemies." sprite-null-update sprite-display-image 64 64 0 "left")
+                                 (make-sprite "Weapon 2" bubble-spell '(230 119) "The second weapon." sprite-null-update sprite-display-image 64 64 0 "left")
+                                 (make-sprite "Weapon 3" bubble-spell '(369 119) "The third weapon." sprite-null-update sprite-display-image 64 64 0 "left")))
 
 (define (sprite-list-by-map-number list-num)
   (cond ((= list-num 1) sprite-list-one)

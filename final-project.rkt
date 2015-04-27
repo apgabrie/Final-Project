@@ -45,6 +45,9 @@
 (define (change-world-wait-counter y count)
   (make-world (get-state y) (get-map y) (get-sprites y) (get-bg y) (get-map-offset y) (get-tiles-on-left y) 
               (get-health y) (get-exp y) (get-inventory-sprites y) count (get-weapon y)))
+(define (change-world-weapon y weapon)
+  (make-world (get-state y) (get-map y) (get-sprites y) (get-bg y) (get-map-offset y) (get-tiles-on-left y) 
+              (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y) weapon))
 
 (define (main y)
   (big-bang y
@@ -52,7 +55,8 @@
             [stop-when (lambda (y) (= (get-map y) 5))]
             [to-draw draw]
             [on-key keys-down]
-            [on-release key-release]))
+            [on-release key-release]
+            [name "Henriette the Witch"]))
 
 (define (side-scroll-going-right player map-offset tiles-on-left)
   (let ((new-map-offset (+ map-offset (sprite-velX player))))
@@ -113,8 +117,9 @@
                      (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
         ; PAUSE MENU UPDATE
         ((eq? (get-state y) "pause menu")
-         (let* ((new-sprites (map (lambda (sprite) ((sprite-update sprite) sprite))(get-inventory-sprites y)))
-               (cursor (filter cursor? new-sprites)))
+         (let* ((new-sprites (map (lambda (sprite) ((sprite-update sprite) sprite)) (get-inventory-sprites y)))
+               (cursor (filter cursor? new-sprites))
+               (spells (filter spell? (get-inventory-sprites y))))
            (cond ((> (get-wait-counter y) 0)
                   (change-world-wait-counter y (- (get-wait-counter y) 1)))
                  ((and z-button (is-state? (car cursor) "save position"))
@@ -125,6 +130,15 @@
                   (set! z-button #f)
                   (make-world "playing" (get-map y) (get-sprites y) bg-1 (get-map-offset y) (get-tiles-on-left y) 
                               (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
+                 ((and z-button (is-state? (car cursor) "position spell 1"))
+                  (set! z-button #f)
+                  (change-world-weapon y 1))
+                 ((and z-button (>= (length spells) 2) (is-state? (car cursor) "position spell 2"))
+                  (set! z-button #f)
+                  (change-world-weapon y 2))
+                 ((and z-button (>= (length spells) 3) (is-state? (car cursor) "position spell 3"))
+                  (set! z-button #f)
+                  (change-world-weapon y 3))
                  (else (change-world-inventory-sprites y new-sprites)))))
         ; PLAYING UPDATE
         ((eq? (get-state y) "playing")
@@ -179,7 +193,10 @@
                                                (projectile-collisions projectiles enemies)))
                 (items (filter item? new-sprites))
                 (new-items (filter (lambda (x) (not (sprites-collide? x player))) items))
-                (new-exp (foldr (lambda (x y) (+ (sprite-damage x) y)) 0 (filter (lambda (x) (sprites-collide? x player)) items)))
+                
+                (exp (filter exp? new-sprites))
+                (new-exp-items (filter (lambda (x) (not (sprites-collide? x player))) exp))
+                (new-exp (foldr (lambda (x y) (+ (sprite-damage x) y)) 0 (filter (lambda (x) (sprites-collide? x player)) exp)))
                 
                 (maybe-next-stage (filter (lambda (x) (sprites-collide? player x)) new-sprites))
                 
@@ -191,7 +208,7 @@
                            (get-health y) (get-exp y) (get-inventory-sprites y) 65 (get-weapon y))
                (make-world (get-state y) (get-map y) 
                            ; new sprite-list
-                           (append enemies-after-projectiles new-projectiles (list new-player) new-items)
+                           (append enemies-after-projectiles new-projectiles (list new-player) new-items new-exp-items)
                            (get-bg y) new-map-offset new-tiles-on-left (- (get-health y) damage) 
                            (+ (get-exp y) new-exp) (get-inventory-sprites y) new-wait-timer (get-weapon y)))))
         ; TITLE SCREEN UPDATE
@@ -204,8 +221,6 @@
                               (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
                  ((and z-button (is-state? (car cursor) "continue"))
                   (set! z-button #f)
-                  ;(make-world-from-save)
-                  ;(continue)
                   (make-world "playing" (first continue) (sprite-list-by-map-number (first continue)) bg-1 (get-map-offset y) (get-tiles-on-left y) 
                               (second continue) (third continue) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
                  (else (change-world-sprites y new-sprites)))))
