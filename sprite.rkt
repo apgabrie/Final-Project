@@ -260,27 +260,29 @@
 
 ; SHOOT WEAPON
 (define (shoot-weapon sprite exp weapon-type)
+  (define (shoot-weapon-of-type sprite level weapon-type)
+    (cond ; WEAPON ONE: Bubble
+      ((and (= level 0) (= weapon-type 1))
+       (list (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 20) (+ (sprite-realY sprite) 20) 8 10 1)
+                          "start" weapon-one-update sprite-display-image 20 20 60 (sprite-direction sprite))))
+      ((and (= level 1) (= weapon-type 1))
+       (list (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 20) (+ (sprite-realY sprite) 20) 8 5 1)
+                          "start" weapon-one-update sprite-display-image 20 20 60 (sprite-direction sprite))
+             (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 20) (+ (sprite-realY sprite) 20) 6 12 1)
+                          "start" weapon-one-update sprite-display-image 20 20 60 (sprite-direction sprite))))
+      ((and (= level 2) (= weapon-type 1))
+       (list (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 32) (sprite-realY sprite) 10 0 1)
+                          "start" weapon-one-update-2 sprite-display-image 20 20 60 (sprite-direction sprite))
+             (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 32) (sprite-realY sprite) 10 8 1)
+                          "start" weapon-one-update-2 sprite-display-image 20 20 60 (sprite-direction sprite))
+             (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 32) (sprite-realY sprite) 10 -8 1)
+                          "start" weapon-one-update-2 sprite-display-image 20 20 60 (sprite-direction sprite))))
+      ; WEAPON TWO : X
+      (else '())))
   (set! x-button #f)
   (shoot-weapon-of-type sprite (floor (/ exp 60)) weapon-type))
 
-(define (shoot-weapon-of-type sprite level weapon-type)
-  (cond ; WEAPON ONE: Bubble
-        ((and (= level 0) (= weapon-type 1))
-         (list (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 20) (+ (sprite-realY sprite) 20) 8 10 1)
-                            "start" weapon-one-update sprite-display-image 20 20 60 (sprite-direction sprite))))
-        ((and (= level 1) (= weapon-type 1))
-         (list (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 20) (+ (sprite-realY sprite) 20) 8 5 1)
-                            "start" weapon-one-update sprite-display-image 20 20 60 (sprite-direction sprite))
-               (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 20) (+ (sprite-realY sprite) 20) 6 12 1)
-                            "start" weapon-one-update sprite-display-image 20 20 60 (sprite-direction sprite))))
-        ((and (= level 2) (= weapon-type 1))
-         (list (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 32) (sprite-realY sprite) 10 0 1)
-                            "start" weapon-one-update-2 sprite-display-image 20 20 60 (sprite-direction sprite))
-               (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 32) (sprite-realY sprite) 10 8 1)
-                            "start" weapon-one-update-2 sprite-display-image 20 20 60 (sprite-direction sprite))
-               (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 32) (sprite-realY sprite) 10 -8 1)
-                            "start" weapon-one-update-2 sprite-display-image 20 20 60 (sprite-direction sprite))))
-        (else '())))
+
 
 ; PLAYER UPDATE PROCEDURE
 (define (player-update-proc sprite)
@@ -365,10 +367,13 @@
            (make-sprite "projectile" bubble (list (sprite-realX sprite) (sprite-realY sprite)) "pop" sprite-decay-update weapon-one-pop-draw 20 20 6 "left"))
            ((< (sprite-velY sprite) -1)
            (change-sprite-velY (projectile-update-proc sprite) (+ (sprite-velY sprite) 1)))
-          ((> (sprite-velY sprite) 1)
-           (change-sprite-velY (projectile-update-proc sprite) (- (sprite-velY sprite) 1)))
-          (else (projectile-update-proc sprite)))))
-
+           ((> (sprite-velY sprite) 1)
+            (change-sprite-velY (projectile-update-proc sprite) (- (sprite-velY sprite) 1)))
+           (else (projectile-update-proc sprite)))))
+#|
+(define (weapon-two-update sprite)
+  (let ((new-sprite (if (eq?)
+|#
 ; ENEMY UPDATE PROCEDURES
 (define (fly-up sprite X Y) ; ALWAYS SET TO FLY LEFT, can be changed by passing + or -
   (cond ((< (sprite-realY sprite) 0)
@@ -421,14 +426,16 @@
           ; (change-sprite-direction new-sprite "left"))
           ;; this checks bottom right of sprite for hole
           ((and (is-dir? sprite "right")
+                
                 (or (= (sprite-realX new-sprite) (sprite-realX sprite))
-                    (= 0 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (+ (sprite-gridY sprite) 1)))))
+                    (and (= 0 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (+ (sprite-gridY sprite) 1)))
+                         (> (+ (sprite-realX new-sprite) (sprite-width sprite)) (* 64 (+ (sprite-gridX new-sprite) 1))))))
            (change-sprite-direction new-sprite "left"))
           ((and (is-dir? sprite "left")
                 (= (sprite-realX new-sprite) (sprite-realX sprite)))
            (change-sprite-direction new-sprite "right"))
           ((and (is-dir? sprite "left")
-                (= 0 (tile-at-xy current-map (- (sprite-gridX sprite) 1) (- (sprite-gridY sprite) 1))))
+                (= 0 (tile-at-xy current-map (sprite-gridX sprite) (+ (sprite-gridY sprite) 1))))
            (change-sprite-direction new-sprite "right"))
            
            ;(= 0 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (+ (sprite-gridY sprite) 1)))
@@ -822,7 +829,7 @@
 (define title-sprite-list (list (make-sprite "cursor" arrow1 '(200 275) "start" title-screen-cursor-update arrow-cursor-draw 64 64 0 "left")))
 (define sprite-list-one (list (make-sprite "player" player-stand-right (list 64 320 3 17) "stand" player-update-proc player-draw-proc 64 64 0 "right")
                               ;(make-sprite "enemy-1" (rectangle 64 64 "solid" "red") '(1024 320 0 0 10 5) "walk" enemy-one-update-proc sprite-display-image 64 64 0 "left")
-                              (make-sprite "enemy-3" slim-goo-left '(656 320 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "left")
+                              (make-sprite "enemy-3" slim-goo-left '(320 256 0 0 10 2) "walk" enemy-walk-no-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-3" slim-goo-left '(556 321 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-4" sentinel '(823 192 0 120 20 3) "shoot" enemy-four-update-proc sprite-display-image 30 64 0 "left")
                               ;(make-sprite "enemy-6" (rectangle 64 64 "solid" "blue") '(1984 64 0 0 20 5) "stand" enemy-six-update-proc sprite-display-image 64 64 0 "left")
