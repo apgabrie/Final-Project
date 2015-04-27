@@ -43,13 +43,20 @@ This is the function that draws all of the sprites. It uses the higher order pro
 ####Patrick
 This was used inside of the "slim-goo" enemy update procedure, these lines of code basically handled all of the slim-goo's basic movements across the map which made it nice. 
 ```
- (if (equal? (move-left sprite 2) sprite)
-     (change-sprite-state sprite "walk-right")
-     (move-left sprite 2)))
-(else
-     (if (equal? (move-right sprite 2) sprite)
-         (change-sprite-state sprite "walk-left")
-         (move-right sprite 2)))))
+(define (enemy-walk-fall-update-proc sprite)
+  (let* ((new-sprite (cond ((is-dir? sprite "right")
+                            (move-right sprite 2))
+                           ((is-dir? sprite "left")
+                            (move-left sprite 2)))))
+    (cond ((<= (sprite-health sprite) 0)
+           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 3))
+          ((and (is-dir? sprite "right")
+                (= (sprite-realX new-sprite) (sprite-realX sprite)))
+           (change-sprite-direction new-sprite "left"))
+          ((and (is-dir? sprite "left")
+                (= (sprite-realX new-sprite) (sprite-realX sprite)))
+           (change-sprite-direction new-sprite "right"))
+          (else new-sprite))))
 
 ```
 
