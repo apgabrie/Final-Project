@@ -290,7 +290,9 @@
                          (change-sprite-frame-counter new-sprite-l-r (+ (sprite-frame-counter new-sprite-l-r) 1)))))
     (cond ; GET HURT
           ((and (is-state? sprite "get hurt") (> (sprite-frame-counter sprite) 0))
-           (change-sprite-frame-counter (jump (move-left sprite 7) 17) (- (sprite-frame-counter sprite) 1)))
+           (if (equal? (sprite-direction sprite) "right")
+               (change-sprite-frame-counter (jump (move-left sprite 7) 17) (- (sprite-frame-counter sprite) 1))
+               (change-sprite-frame-counter (jump (move-right sprite 7) 17) (- (sprite-frame-counter sprite) 1))))
           ((and (is-state? sprite "get hurt") (= (sprite-frame-counter sprite) 0))
            (change-sprite-velY (change-sprite-state sprite "stand") 17))
           ; LAND IN PIT
