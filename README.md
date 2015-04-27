@@ -11,6 +11,7 @@ Henriette the Witch is a 2D side-scroller which involves a number of mechanics s
 ##Screenshot
 Here's the title screen to our game where you can either start a new one or continue from where you last left off:
 ![titlescreenshot](v8eHm27.png)
+
 Here's the game in action:
 ![gamescreenshot](3wv7dHN.png)
 
@@ -27,9 +28,17 @@ Here's the game in action:
 
 ##Favorite Lines of Code
 ####Andrew 
-Remember code looks something like this:
+
+This is the function that draws all of the sprites. It uses the higher order procedure accumulate to place all of the sprites at the proper x and y coordinates, using the draw function each sprite has. It also takes into account the offset from the far left boundry of the level. This consideration ended up making implementing side-scrolling much easier than anticipated, and because of that, it's my favorite line.
+
 ```scheme
-(map (lambda (x) (foldr compose functions)) data)
+(define (draw-sprites sprite-list img offset)
+  (foldr (lambda (x y) (place-image/align ((sprite-draw x) x) 
+                                          (- (sprite-realX x) offset) 
+                                          (sprite-realY x) 
+                                          'left 'top y)) 
+         img
+         sprite-list))
 ```
 ####Patrick
 This expression reads in a regular expression and elegantly matches it against a pre-existing hashmap....
@@ -47,9 +56,11 @@ This expression reads in a regular expression and elegantly matches it against a
 In order to play the game, open final-project.rkt in DrRacket and run it.
 To select start or continue on the title screen use the arrow keys to move and z to select.
 The controls for the rest of the game are:
-*z button - jump also used to select when on title screen or in pause menu
+*z button - jump, also used to select when on title screen or in pause menu
 *x button - attack
 *arrow keys - move player to left and right
 *left shift - open pause menu
+
+The player's level is the number in the star in the top left corner of the screen. The higher level you are, the more powerful your spells. Experience points, represented by the yellow bar, can be collected by killing enemies to gain levels. 
 
 Latest Release : (x)
