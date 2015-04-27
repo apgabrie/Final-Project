@@ -27,13 +27,13 @@
 
 ;******************** MAP STUFF ***********************
 
-(define map-one (list (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai t1 ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai t1 ai ai ai ai t1 ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1)))
+(define map-one (list (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
+                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
+                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
+                      (list ai ai ai ai ai ai ai ai ai ai ai ai d1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
+                      (list ai ai ai ai ai d1 ai ai ai ai ai ai w4 w3 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
+                      (list d1 ai ai ai ai w4 w3 d2 ai ai ai w4 g3 w1 ai b1 b1 ai ai d2 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
+                      (list g1 g1 g1 g1 g1 g3 g2 g1 g1 g1 g1 g3 g4 g2 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1)))
   #|(list (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
                       (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
                       (list w1 b1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai d1 ai ai ai ai ai b1 ai ai ai ai ai)
