@@ -63,4 +63,4 @@ The controls for the rest of the game are:
 
 The player's level is the number in the star in the top left corner of the screen. The higher level you are, the more powerful your spells. Experience points, represented by the yellow bar, can be collected by killing enemies to gain levels. 
 
-Latest Release : (x)
+Latest Release : ([x](https://github.com/oplS15projects/Henriette-the-Witch/releases/tag/v2.0))
