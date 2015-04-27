@@ -56,10 +56,10 @@ This expression reads in a regular expression and elegantly matches it against a
 In order to play the game, open final-project.rkt in DrRacket and run it.
 To select start or continue on the title screen use the arrow keys to move and z to select.
 The controls for the rest of the game are:
-*z button - jump, also used to select when on title screen or in pause menu
-*x button - attack
-*arrow keys - move player to left and right
-*left shift - open pause menu
+* z button - jump, also used to select when on title screen or in pause menu
+* x button - attack
+* arrow keys - move player to left and right
+* left shift - open pause menu
 
 The player's level is the number in the star in the top left corner of the screen. The higher level you are, the more powerful your spells. Experience points, represented by the yellow bar, can be collected by killing enemies to gain levels. 
 
