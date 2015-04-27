@@ -42,7 +42,7 @@ This is the function that draws all of the sprites. It uses the higher order pro
 ```
 ####Patrick
 This was used inside of the "slim-goo" enemy update procedure, these lines of code basically handled all of the slim-goo's basic movements across the map which made it nice. 
-```scheme
+```
  (if (equal? (move-left sprite 2) sprite)
      (change-sprite-state sprite "walk-right")
      (move-left sprite 2)))
