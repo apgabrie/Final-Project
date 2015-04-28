@@ -59,7 +59,7 @@
             [name "Henriette the Witch"]))
 
 (define (side-scroll-going-right player map-offset tiles-on-left)
-  (let ((new-map-offset (+ map-offset (sprite-velX player))))
+  (let ((new-map-offset (+ map-offset 7)))
     (cond ((and (>= new-map-offset 64) (< tiles-on-left (- (length (car current-map)) 11)))
            (list (- new-map-offset 64) (+ tiles-on-left 1)))
           ((and (= tiles-on-left (- (length (car current-map)) 11)) (< new-map-offset 64))
@@ -71,7 +71,7 @@
         (else (list map-offset tiles-on-left)))))
 
 (define (side-scroll-going-left player map-offset tiles-on-left)
-  (let ((new-map-offset (- map-offset (sprite-velX player))))
+  (let ((new-map-offset (- map-offset 7)))
     (cond ((and (<= new-map-offset 0) (> tiles-on-left 0))
            (list (+ new-map-offset 64) (- tiles-on-left 1)))
           ((and (= tiles-on-left 0) (> new-map-offset 0))
@@ -155,26 +155,32 @@
                 (enemies-colliding-w-player (enemy-collision new-sprites))
                 (damage (cond ((is-state? player "place me") (null? enemies-colliding-w-player)
                                30)
-                              ((or (is-state? player "get hurt") (null? enemies-colliding-w-player)) 
+                              ((or (is-state? player "get hurt") (null? enemies-colliding-w-player) (> (player-invincibility-counter player) 0)) 
                                0)
                               (else (sprite-damage (car enemies-colliding-w-player)))))
-                (player-maybe-hurt (if (null? enemies-colliding-w-player) 
-                                       player 
-                                       (change-sprite-velY (change-sprite-frame-counter (change-sprite-state player "get hurt") 100) 10)))
+                (player-maybe-hurt (if (and (not (null? enemies-colliding-w-player)) (= (player-invincibility-counter player) 0))
+                                       (change-player-invincibility-counter
+                                        (change-sprite-velY (change-sprite-state player "get hurt") 5)
+                                        80)
+                                       player))
                 (new-player (cond ((is-state? player-maybe-hurt "place me")
                                    (let ((check-point (find-checkpoint current-map (sprite-gridX player))))
-                                     (change-sprite-state
-                                      (change-sprite-coords player 
-                                                            (* 64 (car check-point))
-                                                            (* 64 (cadr check-point)))
-                                      "stand")))
+                                     (change-player-invincibility-counter
+                                      (change-sprite-state
+                                       (change-sprite-coords player 
+                                                             (* 64 (car check-point))
+                                                             (* 64 (cadr check-point)))
+                                       "stand")
+                                      80)))
                                   ((is-state? player-maybe-hurt "get hurt") player-maybe-hurt)
                                   ((and (not (is-state? player "jump")) (left-key-not-right-key)) (change-sprite-state (change-sprite-direction player "left") "walk"))
                                   ((and (not (is-state? player "jump")) (right-key-not-left-key)) (change-sprite-state (change-sprite-direction player "right") "walk"))
-                                  ((not (is-state? player "jump")) (change-sprite-state player "stand"))
+                                  ((not (is-state? player "jump")) 
+                                   (set! double-jumpable? #f)
+                                   (change-sprite-state player "stand"))
                                   (else player)))
                 
-                ; prevents projectiles being shoot too close together
+                ; prevents projectiles being shot too close together
                 (new-wait-timer (cond ((and x-button (= (get-wait-counter y) 0))
                                        3)
                                       ((> (get-wait-counter y) 0)
