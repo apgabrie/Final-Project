@@ -424,9 +424,9 @@
           
           ;((= 1 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (sprite-gridY sprite)))
           ; (change-sprite-direction new-sprite "left"))
+          
           ;; this checks bottom right of sprite for hole
           ((and (is-dir? sprite "right")
-                
                 (or (= (sprite-realX new-sprite) (sprite-realX sprite))
                     (and (= 0 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (+ (sprite-gridY sprite) 1)))
                          (> (+ (sprite-realX new-sprite) (sprite-width sprite)) (* 64 (+ (sprite-gridX new-sprite) 1))))))
@@ -468,8 +468,6 @@
     (cond ((and (is-state? jump-sprite "jump")
                 (= (sprite-realY sprite) (sprite-realY jump-sprite)))
            jump-sprite)
-           
-      
           ((<= (sprite-health sprite) 0)
            (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 3))
           ((and (is-dir? sprite "right")
@@ -482,6 +480,88 @@
                 (= (sprite-realX jump-sprite) (sprite-realX sprite)))
            (change-sprite-direction jump-sprite "right"))
           (else jump-sprite))))
+
+;; ENEMY-SLIME
+(define (enemy-slime-update-proc sprite)
+  (let* ((new-sprite  (cond ((is-state? sprite "stand")
+                             sprite)
+                            ((and (is-dir? sprite "right")
+                                  (is-state? sprite "jump"))
+                             (jump (move-right sprite 2) 10))
+                            ((and (is-dir? sprite "left")
+                                  (is-state? sprite "jump"))
+                             (jump (move-left sprite 2) 10)))))
+    
+  (cond ((<= (sprite-health sprite) 0)
+         (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 8))
+#|
+         (list "pop-me"
+               (make-sprite "enemy-split" (rectangle 32 32 "solid" "green") (list (sprite-realX sprite) (sprite-realY sprite) 5 5 5 2) "jump" enemy-split-update-proc sprite-display-image 32 32 100 "left")
+               (make-sprite "enemy-split" (rectangle 32 32 "solid" "green") (list (+ (sprite-realX sprite) (sprite-width sprite)) (sprite-realY sprite) 5 5 5 2) "jump" enemy-split-update-proc sprite-display-image 32 32 100 "right")))
+|#
+        
+        ((and (<= (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-state new-sprite "jump"))
+        ((and (> (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-frame-counter new-sprite (- (sprite-frame-counter new-sprite) 1)))
+        ((and (= (sprite-realY new-sprite) (sprite-realY sprite))
+              (= 1 (tile-at-xy current-map (sprite-gridX new-sprite) (+ (sprite-gridY new-sprite) 1))))
+         (change-sprite-frame-counter (change-sprite-state new-sprite "stand") 50))
+        ((and (is-dir? sprite "right")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "left"))
+        ((and (is-dir? sprite "left")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "right"))
+        (else new-sprite))))
+
+;; ENEMY-SLIME-SPLIT
+(define (enemy-split-update-proc sprite)
+  (let* ((new-sprite  (cond ((is-state? sprite "stand")
+                             sprite)
+                            ((and (is-dir? sprite "right")
+                                  (is-state? sprite "jump"))
+                             (jump (move-right sprite 2) 10))
+                            ((and (is-dir? sprite "left")
+                                  (is-state? sprite "jump"))
+                             (jump (move-left sprite 2) 10)))))
+    (cond ((<= (sprite-health sprite) 0)
+           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 2))
+        
+        ((and (<= (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-state new-sprite "jump"))
+        ((and (> (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-frame-counter new-sprite (- (sprite-frame-counter new-sprite) 1)))
+        ; this needs to be fixed for the split slimes
+        ((and (= (sprite-realY new-sprite) (sprite-realY sprite))
+              (= 1 (tile-at-xy current-map (sprite-gridX new-sprite) (+ (sprite-gridY new-sprite) 1))))
+         (change-sprite-frame-counter (change-sprite-state new-sprite "stand") 100))
+        ((and (is-dir? sprite "right")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "left"))
+        ((and (is-dir? sprite "left")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "right"))
+        (else new-sprite))))
+#|
+  (let* ((new-sprite (if (eq? (sprite-direction sprite) "right")
+                         (jump (move-right sprite 2) 12)
+                         (jump (move-left sprite 2) 12))))
+    (cond ((<= (sprite-health sprite) 0)
+           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 2))
+                 
+          ((and (is-dir? sprite "right")
+                (= (sprite-realX new-sprite) (sprite-realX sprite)))
+           (change-sprite-direction new-sprite "left"))
+          ((and (is-dir? sprite "left")
+                (= (sprite-realX new-sprite) (sprite-realX sprite)))
+           (change-sprite-direction new-sprite "right"))
+          (else new-sprite))))
+|#
 
 (define (enemy-four-update-proc sprite)
   (cond ((<= (sprite-health sprite) 0)
@@ -838,8 +918,8 @@
 
 (define title-sprite-list (list (make-sprite "cursor" arrow1 '(200 275) "start" title-screen-cursor-update arrow-cursor-draw 64 64 0 "left")))
 (define sprite-list-one (list (make-sprite "player" player-stand-right (list 64 320 3 17) "stand" player-update-proc player-draw-proc 64 64 0 "right")
-                              ;(make-sprite "enemy-1" (rectangle 64 64 "solid" "red") '(1024 320 0 0 10 5) "walk" enemy-one-update-proc sprite-display-image 64 64 0 "left")
-                              (make-sprite "enemy-3" slim-goo-left '(320 256 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "right")
+                              (make-sprite "enemy-1" (rectangle 64 64 "solid" "green") (list 1152 320 5 10 10 5) "stand" enemy-slime-update-proc sprite-display-image 64 64 50 "right")
+                              (make-sprite "enemy-3" slim-goo-left '(320 256 0 0 10 2) "walk" enemy-walk-no-fall-update-proc sprite-display-image 30 64 0 "right")
                               (make-sprite "enemy-3" slim-goo-left '(556 321 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-4" sentinel '(823 192 0 120 20 3) "shoot" enemy-four-update-proc sprite-display-image 30 64 0 "left")
                               ;(make-sprite "enemy-6" (rectangle 64 64 "solid" "blue") '(1984 64 0 0 20 5) "stand" enemy-six-update-proc sprite-display-image 64 64 0 "left")
