@@ -1,7 +1,6 @@
-3
+2
 100
-17
+31
 cursor
 Bubble
-Weapon 2
-Weapon 3
+Burst

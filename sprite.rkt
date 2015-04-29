@@ -963,7 +963,7 @@
                               (make-sprite "enemy-slim-goo" slim-goo-left '(320 256 0 0 10 2) "walk" enemy-walk-no-fall-update-proc slim-goo-draw-proc 30 64 0 "left")
                               (make-sprite "enemy-slim-goo" slim-goo-left '(556 321 0 0 10 2) "walk" enemy-walk-fall-update-proc slim-goo-draw-proc 30 64 0 "left")
                               (make-sprite "enemy-sentinel" sentinel '(823 192 0 60 20 3) "shoot" enemy-four-update-proc sprite-display-image 30 64 0 "left")
-                              (make-sprite "enemy-slim-goo" slim-goo-left '(1344 128 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "left")
+                              (make-sprite "enemy-slim-goo" slim-goo-left '(1344 256 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-slim-goo" slim-goo-left '(1600 128 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-slim-goo" slim-goo-left '(1536 128 0 0 10 2) "walk" enemy-walk-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-slim-goo" slim-goo-left '(1984 192 0 0 10 2) "walk" enemy-walk-no-fall-update-proc slim-goo-draw-proc 30 64 0 "left")
@@ -975,8 +975,8 @@
                               (make-sprite "enemy-sentinel" sentinel '(1236 64 0 20 20 3) "shoot" enemy-four-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-slim-goo" slim-goo-left '(1472 256 0 0 10 2) "walk" enemy-walk-no-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-slime" big-slime (list 438 256 5 10 10 5) "stand" enemy-slime-update-proc sprite-display-image 64 64 100 "left")
-                              
-                              (make-sprite "item-next-stage" (rectangle 64 64 "solid" "yellow") '(2140 192 0 0) "float" sprite-null-update sprite-display-image 64 64 0 "left")))
+                              ))
+                              ;(make-sprite "item-next-stage" (rectangle 64 64 "solid" "yellow") '(2268 192 0 0) "float" sprite-null-update sprite-display-image 64 64 0 "left")))
 (define sprite-list-three (list (make-sprite "player" player-stand-right (list 64 320 0 17 0) "stand" player-update-proc player-draw-proc 64 64 0 "left")))
 
 (define inventory-list-one (list menu-cursor-pos-1
