@@ -54,11 +54,11 @@
 
 (define map-two (list (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
                       (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai b1 ai ai ai ai ai ai ai ai ai ai ai w4 g1 g1 ai ai ai)
-                      (list w1 ai ai ai ai ai ai ai ai ai ai b1 d2 ai ck ai ai ai ai b1 ck ai ai ai ai ai ai ai ai b1 ai w2 g4 g4 ai ai ai)
-                      (list w1 ai ai ai ai ai ai d1 ai ai ai b1 w4 g1 w3 ai ai ai w4 g1 w3 ai ai ai ai ai b1 ai ai ai ai w2 g4 g4 ai ai ai)
-                      (list w1 d1 d1 ai ai ai w4 g1 g1 g1 g1 g1 g3 g4 w1 ai ai w4 g3 g4 w1 ai ai b1 b1 ai ai ai ai ai w4 g3 g4 g4 ai ai ai)
-                      (list g2 g1 g1 g1 g1 g1 g3 g4 g4 g4 g4 g4 g4 g4 w1 ai ai w2 g4 g4 w1 ai ai ai ai ai ai ai w4 g1 g3 g4 g4 g4 g1 g1 g1)))
+                      (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai b1 ai ai ai ai ai ai ai ai ai ai ai w4 g1 w3 ai ai ai)
+                      (list w1 ai ai ai ai ai ai ai ai ai ai b1 d2 ai ck ai ai ai ai b1 ck ai ai ai ai ai ai ai ai b1 ai w2 g4 g2 w3 ai ai)
+                      (list w1 ai ai ai ai ai ai d1 ai ai ai b1 w4 g1 w3 ai ai ai w4 g1 w3 ai ai ai ai ai b1 ai ai ai ai w2 g4 g4 g2 g1 g1)
+                      (list w1 d1 d1 ai ai ai w4 g1 g1 g1 g1 g1 g3 g4 w1 ai ai w4 g3 g4 w1 ai ai b1 b1 ai ai ai ai ai w4 g3 g4 g4 g4 g4 g4)
+                      (list g2 g1 g1 g1 g1 g1 g3 g4 g4 g4 g4 g4 g4 g4 w1 ai ai w2 g4 g4 w1 ai ai ai ai ai ai ai w4 g1 g3 g4 g4 g4 g4 g4 g4)))
 #|
 (define map-two (list (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
                       (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
@@ -86,6 +86,7 @@
                       (list ai ai ai ai ai ai t1 ai ai t1)
                       (list t1 t1 ai ai ai ai t1 ai ai ai)
                       (list t1 t1 t1 t1 t1 t1 t1 ai t1 t1)))
+
 (define map-four 
                 (list (list ai ai ai ai ai t1 t1 t1 ai t1 t1 ai ai ai t1 t1 ai t1 t1 t1 ai ai ai ai ai ai)
                       (list ai ai ai ai ai ai t1 ai ai t1 ai ai ai t1 ai ai ai ai t1 ai ai ai ai ai ai ai)

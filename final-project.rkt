@@ -248,8 +248,9 @@
                               (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
                  ((and z-button (is-state? (car cursor) "continue"))
                   (set! z-button #f)
-                  (make-world "playing" (first continue) (sprite-list-by-map-number (first continue)) bg-1 (get-map-offset y) (get-tiles-on-left y) 
-                              (second continue) (third continue) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
+                  (set! current-map (map-by-number (second (continue y))))
+
+                  (continue y))
                  (else (change-world-sprites y new-sprites)))))
         (else y)))
 
@@ -329,14 +330,36 @@
                                                            HUD))))
 
 (define (save-world y)
-  (let ((map    (get-map y))
-        (health (get-health y))
-        (exp    (get-exp y)))
   (write-file "save.txt"
-              (string-append (number->string map) "\n" (number->string health) "\n" (number->string exp) ))))
+              (string-append 
+               (number->string (get-map y)) "\n" 
+               (number->string (get-health y)) "\n" 
+               (number->string (get-exp y)) "\n"
+               (string-append* (cdr (append* (map (lambda (x) (list "\n" x))
+                                     (map car (get-inventory-sprites y)))))))))
 
-(define continue
-    (map car (read-words-and-numbers/line "save.txt")))
+(define (continue y)
+  (let* ((saved-variables (read-lines "save.txt"))
+         (map (string->number (first saved-variables)))
+         (health (string->number (second saved-variables)))
+         (exp (string->number (third saved-variables)))
+         (inventory-items (drop saved-variables 3))
+         (inventory-sprite-list-init (list menu-cursor-pos-1
+                                           (make-sprite "Bubble" bubble-spell '(91 119) "A simple spell. Shoots a bubble to hurt enemies." sprite-null-update sprite-display-image 64 64 0 "left"))) )
+    
+    (define (inventory-sprite-list-final inv-items ac)
+      ;;; check for items later...
+      (cond ((not (eq? (findf (lambda (x) (equal? x "Burst")) inv-items) #f))
+             (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Burst"))) inv-items) (append ac
+                                                                                                              (list (make-sprite "Burst" burst-spell '(230 119) "Shoots a sphere that burst in all directions." sprite-null-update sprite-display-image 64 64 0 "left")))))
+            #|
+            ((not (eq? (findf (lambda (x) (equal? x "Weapon 3")) inv-items) #f))
+             (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Weapon 3"))) inv-items) (append ac
+                                                                                                              (list (make-sprite "Weapon 3" bubble-spell '(369 119) "The third weapon." sprite-null-update sprite-display-image 64 64 0 "left")))))|#
+            (else ac)))
+    
+           (make-world "playing" map (sprite-list-by-map-number map) bg-1 (get-map-offset y) (get-tiles-on-left y) health exp (inventory-sprite-list-final inventory-items inventory-sprite-list-init) (get-wait-counter y) (get-weapon y))))
+
 
 (main (make-world "title screen" 0 title-sprite-list title-screen-bg 0 0 100 0 inventory-list-one 0 1))
 
