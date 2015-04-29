@@ -52,7 +52,8 @@
 (define (main y)
   (big-bang y
             [on-tick update]
-            [stop-when (lambda (y) (= (get-map y) 5))]
+            [stop-when (lambda (y) (or (= (get-map y) 5)
+                                       (eq? (get-state y) "game over")))]
             [to-draw draw]
             [on-key keys-down]
             [on-release key-release]
@@ -98,10 +99,15 @@
         (else (list map-offset tiles-on-left))))
 
 (define (update y)
-  (cond ; NEXT STAGE WAIT
+  (cond 
+    ; GAME OVER
+    ((and (<= (get-health y) 0) (eq? (get-state y) "playing"))
+     (make-world "game over" (get-map y) '() game-over (get-map-offset y) (get-tiles-on-left y) (get-health y) (get-exp y) (get-inventory-sprites y)
+                 (get-wait-counter y) (get-weapon y)))
         ((and (eq? (get-state y) "next stage wait") (> (get-wait-counter y) 0))
          (make-world (get-state y) (get-map y) (get-sprites y) (get-bg y) (get-map-offset y) (get-tiles-on-left y) 
                      (get-health y) (get-exp y) (get-inventory-sprites y) (- (get-wait-counter y) 1) (get-weapon y)))
+        ; NEXT STAGE WAIT
         ((and (eq? (get-state y) "next stage wait") (<= (get-wait-counter y) 0))
          (set! current-map (map-by-number (+ (get-map y) 1)))
          (make-world "playing" (+ (get-map y) 1) (sprite-list-by-map-number (+ (get-map y) 1)) (get-bg y) 0 0 
@@ -291,6 +297,7 @@
 (define bg-1 (bitmap "images/Background-1.png"))
 (define bg-2 (bitmap "images/Background-2.png"))
 (define pause-menu (bitmap "images/menu/pause-menu.png"))
+(define game-over (bitmap "images/game-over.png"))
 
 (define healthbar (bitmap "images/healthbar.png"))
 (define expbar (bitmap "images/expbar.png"))
