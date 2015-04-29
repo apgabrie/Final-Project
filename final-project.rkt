@@ -109,8 +109,10 @@
                      (get-health y) (get-exp y) (get-inventory-sprites y) (- (get-wait-counter y) 1) (get-weapon y)))
         ((and (eq? (get-state y) "next stage wait") (<= (get-wait-counter y) 0))
          (set! current-map (map-by-number (+ (get-map y) 1)))
-         (make-world "playing" (+ (get-map y) 1) (sprite-list-by-map-number (+ (get-map y) 1)) (get-bg y) 0 0 
-                     (get-health y) (get-exp y) (get-inventory-sprites y) 0 (get-weapon y)))
+         (let ((new-spell (cond ((= (get-map y) 1) (list the-burst-spell))
+                                (else nil))))
+           (make-world "playing" (+ (get-map y) 1) (sprite-list-by-map-number (+ (get-map y) 1)) (get-bg y) 0 0 
+                       (get-health y) (get-exp y) (append (get-inventory-sprites y) new-spell) 0 (get-weapon y))))
         ; PAUSE BUTTON PRESS
         ((and shift-button (eq? (get-state y) "playing"))
          (set! shift-button #f)
@@ -255,17 +257,29 @@
 (define (draw y)
   (cond ; NEXT STAGE WAIT DRAW
         ((eq? (get-state y) "next stage wait")
-         (let ((health-width (if (> (get-health y) 0) (get-health y) 0)))
+         (let ((next-level-string-1 (cond ((= (get-map y) 1)
+                                         "You got a new spell!")
+                                        ((= (get-map y) 2)
+                                         "You got magic feather!")))
+               (next-level-string-2 (cond ((= (get-map y) 1)
+                                         "Equip it in the pause menu.")
+                                        ((= (get-map y) 2)
+                                         "You can now double jump."))))
            ; same as in playing but also go to next stage picture
-           (place-image/align next-stage-picture
-                              120 50 'left 'top
-                              (draw-sprites (get-sprites y)
-                                            (draw-map (choose-map (get-map y) (get-tiles-on-left y)) (get-bg y) (get-map-offset y)) (+ (get-map-offset y) (* 64 (get-tiles-on-left y)))))))
+           (place-image/align 
+            (text next-level-string-1 27 'white) 190 120 'left 'top
+            (place-image/align (text next-level-string-2 27 'white) 150 180 'left 'top
+                               (place-image/align next-stage-picture
+                                                  120 50 'left 'top
+                                                  (draw-sprites (get-sprites y)
+                                                                (draw-map (choose-map (get-map y) (get-tiles-on-left y)) (get-bg y) (get-map-offset y)) (+ (get-map-offset y) (* 64 (get-tiles-on-left y)))))))))
         ; PLAYING DRAW
         ((eq? (get-state y) "playing")
          (let ((health-width (if (> (get-health y) 0) (get-health y) 0))
                (weapon-image (cond ((= (get-weapon y) 1)
                                     bubble-spell)
+                                   ((= (get-weapon y) 2)
+                                    burst-spell)
                                    (else (empty-scene 0 0)))))
            ; draw background, then draw map into the background, then draw sprites into map, then draw HUD onto the whole thing
            (place-image/align 
