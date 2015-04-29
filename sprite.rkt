@@ -19,26 +19,12 @@
 (define sprite-frame-counter ninth)
 (define sprite-direction tenth)
 
-(define player-invincibility-counter sprite-damage) ;only for player
-
 (define (sprite-gridX sprite)
      (floor (/ (sprite-realX sprite) 64)))
 (define (sprite-gridY sprite)
   (floor (/ (sprite-realY sprite) 64)))
 
 ; convenience functions
-(define (change-sprite-type sprite type)
-  (make-sprite type 
-               (sprite-image sprite) 
-               (append (list (sprite-realX sprite) (sprite-realY sprite)) (sprite-more-variables sprite)) 
-               (sprite-state sprite) 
-               (sprite-update sprite) 
-               (sprite-draw sprite)
-               (sprite-width sprite)
-               (sprite-height sprite)
-               (sprite-frame-counter sprite)
-               (sprite-direction sprite)))
-
 (define (change-sprite-state sprite state)
   (make-sprite (sprite-type sprite) 
                (sprite-image sprite) 
@@ -122,18 +108,6 @@
                (sprite-height sprite)
                (sprite-frame-counter sprite)
                direction))
-
-(define (change-player-invincibility-counter sprite count)
-  (make-sprite (sprite-type sprite) 
-               (sprite-image sprite) 
-               (append (list (sprite-realX sprite) (sprite-realY sprite) (sprite-velX sprite) (sprite-velY sprite) count) (cdddr (sprite-more-variables sprite))) 
-               (sprite-state sprite) 
-               (sprite-update sprite) 
-               (sprite-draw sprite)
-               (sprite-width sprite)
-               (sprite-height sprite)
-               (sprite-frame-counter sprite)
-               (sprite-direction sprite)))
 
 ; sprite predicates
 (define (player? sprite)
@@ -267,14 +241,22 @@
   (define (help-me the-projectile-list result)
     (if (null? the-projectile-list)
         result
-        (help-me (cdr the-projectile-list) (double-map (lambda (x y) (if (and (sprites-collide? (car the-projectile-list) x) 
-                                                                              (not (eq? '() (sprite-more-variables (car the-projectile-list)))))
+        (help-me (cdr the-projectile-list) (double-map (lambda (x y) (if (sprites-collide? (car the-projectile-list) x)
                                                                          (+ (sprite-damage (car the-projectile-list)) y)
                                                                          (+ 0 y)))
                                                        target-sprites result))))
   (double-map (lambda (x y) (change-sprite-health y (- (sprite-health y) x))) 
               (help-me the-projectiles (make-list (length target-sprites) 0))
               target-sprites))
+
+
+(define (left-or-right sprite)
+  (cond ((and left-button (< (sprite-velX sprite) 7)) (change-sprite-velX (move-left sprite (sprite-velX sprite)) (+ (sprite-velX sprite) 1)))
+        ((and left-button (>= (sprite-velX sprite) 7)) (move-left sprite (sprite-velX sprite)))
+        ((and right-button (< (sprite-velX sprite) 7)) (change-sprite-velX (move-right sprite (sprite-velX sprite)) (+ (sprite-velX sprite) 1)))
+        ((and right-button (>= (sprite-velX sprite) 7)) (move-right sprite (sprite-velX sprite)))
+        ((> (sprite-velX sprite) 7) (change-sprite-velX sprite (- (sprite-velX sprite) 1)))
+        (else sprite)))
 
 ; SHOOT WEAPON
 (define (shoot-weapon sprite exp weapon-type)
@@ -296,54 +278,41 @@
              (make-sprite "projectile" bubble (list (+ (sprite-realX sprite) 32) (sprite-realY sprite) 10 -8 1)
                           "start" weapon-one-update-2 sprite-display-image 20 20 60 (sprite-direction sprite))))
       ; WEAPON TWO : X
-      ((and (= level 0) (= weapon-type 2))
-       (list (make-sprite "projectile" (circle 20 "solid" "red") (list (+ (sprite-realX sprite) 20) (sprite-realY sprite) 4 0 2)
-                          "start" weapon-two-update sprite-display-image 40 40 60 (sprite-direction sprite))))
+      
+      
+      
+      
       (else '())))
   (set! x-button #f)
   (shoot-weapon-of-type sprite (floor (/ exp 60)) weapon-type))
 
-(define (left-or-right sprite)
-  (cond (left-button (move-left sprite 7))
-        (right-button (move-right sprite 7))
-        (else sprite)))
+
 
 ; PLAYER UPDATE PROCEDURE
-(define double-jumpable? #f)
-
 (define (player-update-proc sprite)
-  (let* ((invicinbility-count-sprite (if (> (player-invincibility-counter sprite) 0)
-                                         (change-player-invincibility-counter sprite (- (player-invincibility-counter sprite) 1))
-                                         sprite))
-         (new-sprite-l-r (left-or-right invicinbility-count-sprite))
+  (let* ((new-sprite-l-r (left-or-right sprite))
          (new-sprite (if (>= (sprite-frame-counter new-sprite-l-r) 24)
                          (change-sprite-frame-counter new-sprite-l-r 0)
                          (change-sprite-frame-counter new-sprite-l-r (+ (sprite-frame-counter new-sprite-l-r) 1)))))
-    (cond ; LAND IN PIT
-          ((eq? 3 (tile-at-xy current-map (sprite-gridX sprite) (sprite-gridY sprite)))
-           (change-sprite-state sprite "place me"))
-          ; GET HURT
-          ((and (is-state? sprite "get hurt"))
+    (cond ; GET HURT
+          ((and (is-state? sprite "get hurt") (> (sprite-frame-counter sprite) 0))
            (if (equal? (sprite-direction sprite) "right")
-               (jump (move-left invicinbility-count-sprite 3) 17)
-               (jump (move-right invicinbility-count-sprite 3) 17)))
+               (change-sprite-frame-counter (jump (move-left sprite 7) 17) (- (sprite-frame-counter sprite) 1))
+               (change-sprite-frame-counter (jump (move-right sprite 7) 17) (- (sprite-frame-counter sprite) 1))))
           ((and (is-state? sprite "get hurt") (= (sprite-frame-counter sprite) 0))
            (change-sprite-velY (change-sprite-state sprite "stand") 17))
+          ; LAND IN PIT
+          ((eq? 3 (tile-at-xy current-map (sprite-gridX sprite) (sprite-gridY sprite)))
+           (change-sprite-state sprite "place me"))
           ; FALL
           ((and (not (is-state? new-sprite "jump"))
-                (set! double-jumpable? #t)
                 (= (sprite-realX sprite) (* 64 (sprite-gridX sprite)))
                 (= 0 (tile-at-xy current-map (sprite-gridX sprite) (+ (sprite-gridY sprite) 1))))
            (change-sprite-velY (change-sprite-state new-sprite "jump") 0))
           ((and (not (is-state? new-sprite "jump"))
-                (set! double-jumpable? #t)
                 (= 0 (tile-at-xy current-map (sprite-gridX sprite) (+ (sprite-gridY sprite) 1)))
                 (= 0 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (+ (sprite-gridY sprite) 1))))
            (change-sprite-velY (change-sprite-state new-sprite "jump") 0))
-          ; DOUBLE JUMP
-          ((and z-button double-jumpable? (is-state? new-sprite "jump") (< (sprite-velY sprite) 3))
-           (set! double-jumpable? #f)
-           (change-sprite-velY new-sprite 16))
           ; JUMP BUTTON PRESS
           ((and z-button (not (is-state? new-sprite "jump")))
            (change-sprite-state new-sprite "jump"))
@@ -388,8 +357,8 @@
   (let ((new-sprite (if (eq? (sprite-direction sprite) "right")
                         (sprite-decay-update (jump (move-right sprite (sprite-velX sprite)) 8))
                         (sprite-decay-update (jump (move-left sprite (sprite-velX sprite)) 8)))))
-    (cond ((is-type? "kill-me" new-sprite)
-           (make-sprite "projectile" bubble (list (sprite-realX sprite) (sprite-realY sprite) 0 0 0) "pop" sprite-decay-update weapon-one-pop-draw 20 20 6 "left"))
+    (cond ((eq? (car new-sprite) "kill-me")
+           (make-sprite "projectile" bubble (list (sprite-realX sprite) (sprite-realY sprite)) "pop" sprite-decay-update weapon-one-pop-draw 20 20 6 "left"))
           ((and (is-dir? sprite "right")(= (sprite-realX new-sprite) (sprite-realX sprite)))
            (change-sprite-direction new-sprite "left"))
           ((and (is-dir? sprite "left")(= (sprite-realX new-sprite) (sprite-realX sprite)))
@@ -398,35 +367,24 @@
 
 (define (weapon-one-update-2 sprite)
   (let ((new-sprite (projectile-update-proc (sprite-decay-update sprite))))
-    (cond ((or (= (sprite-realX sprite) (sprite-realX new-sprite)) (is-type? "kill-me" new-sprite) )
+    (cond ((or (eq? (car new-sprite) "kill-me") (= (sprite-realX sprite) (sprite-realX new-sprite)))
            (make-sprite "projectile" bubble (list (sprite-realX sprite) (sprite-realY sprite)) "pop" sprite-decay-update weapon-one-pop-draw 20 20 6 "left"))
            ((< (sprite-velY sprite) -1)
            (change-sprite-velY (projectile-update-proc sprite) (+ (sprite-velY sprite) 1)))
            ((> (sprite-velY sprite) 1)
             (change-sprite-velY (projectile-update-proc sprite) (- (sprite-velY sprite) 1)))
            (else (projectile-update-proc sprite)))))
-
-; WEAPON TWO
+#|
 (define (weapon-two-update sprite)
-  (let ((new-sprite (projectile-update-proc sprite)))
-    (if (or (is-type? "kill-me" new-sprite) (= (sprite-realX sprite) (sprite-realX new-sprite)) (<= (sprite-frame-counter sprite) 0))
-        (list "pop-me"
-              (make-sprite "projectile" (circle 10 "solid" "blue") (list (sprite-realX sprite) (sprite-realY sprite) 7 -1 1) "pop" weapon-two-update-2 sprite-display-image 20 20 60 "left")
-              (make-sprite "projectile" (circle 10 "solid" "blue") (list (+ (sprite-realX sprite) 10) (- (sprite-realY sprite) 10) 4 7 1) "pop" weapon-two-update-2 sprite-display-image 20 20 60 "left")
-              (make-sprite "projectile" (circle 10 "solid" "blue") (list (+ (sprite-realX sprite) 10) (+ (sprite-realY sprite) 10) 4 -7 1) "pop" weapon-two-update-2 sprite-display-image 20 20 60 "left")
-              (make-sprite "projectile" (circle 10 "solid" "blue") (list (+ (sprite-realX sprite) 30) (sprite-realY sprite) 7 1 1) "pop" weapon-two-update-2 sprite-display-image 20 20 60 "right")
-              (make-sprite "projectile" (circle 10 "solid" "blue") (list (+ (sprite-realX sprite) 20) (- (sprite-realY sprite) 10) 4 7 1) "pop" weapon-two-update-2 sprite-display-image 20 20 60 "right")
-              (make-sprite "projectile" (circle 10 "solid" "blue") (list (+ (sprite-realX sprite) 20) (+ (sprite-realY sprite) 10) 4 -7 1) "pop" weapon-two-update-2 sprite-display-image 20 20 60 "right"))
-        new-sprite)))
-
-(define (weapon-two-update-2 sprite)
-  (let ((new-sprite (projectile-update-proc sprite)))
-    (cond ((is-type? "kill-me" new-sprite)
-           new-sprite)
-          ((or (and  (= (sprite-realX sprite) (sprite-realX new-sprite)))
-               (and  (= (sprite-realY sprite) (sprite-realY new-sprite))))
-           (list "kill-me"))
-          (else new-sprite))))
+  (let ((upper 
+        (new-sprite (if (is-dir? sprite "right")
+                        (sprite-decay-update (jump (move-right sprite (sprite-velX sprite)) 8))
+                        (sprite-decay-update (jump (move-left sprite (sprite-velX sprite)) 8)))))
+    (cond ((eq? (car new-sprite) "kill-me")
+           (make-sprite "projectile" bubble (list (sprite-realX sprite) (sprite-realY sprite)) "pop" sprite-decay-update weapon-one-pop-draw 20 20 6 "left"))
+          ((and (is-dir? sprite "right")
+                (= 
+|#
 
 ; ENEMY UPDATE PROCEDURES
 (define (fly-up sprite X Y) ; ALWAYS SET TO FLY LEFT, can be changed by passing + or -
@@ -474,13 +432,13 @@
                           ((is-dir? sprite "left")
                           (move-left sprite 2)))))
     (cond ((<= (sprite-health sprite) 0)
-           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 3))
+           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 4))
           
           ;((= 1 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (sprite-gridY sprite)))
           ; (change-sprite-direction new-sprite "left"))
+          
           ;; this checks bottom right of sprite for hole
           ((and (is-dir? sprite "right")
-                
                 (or (= (sprite-realX new-sprite) (sprite-realX sprite))
                     (and (= 0 (tile-at-xy current-map (+ (sprite-gridX sprite) 1) (+ (sprite-gridY sprite) 1)))
                          (> (+ (sprite-realX new-sprite) (sprite-width sprite)) (* 64 (+ (sprite-gridX new-sprite) 1))))))
@@ -522,10 +480,8 @@
     (cond ((and (is-state? jump-sprite "jump")
                 (= (sprite-realY sprite) (sprite-realY jump-sprite)))
            jump-sprite)
-           
-      
           ((<= (sprite-health sprite) 0)
-           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 3))
+           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 4))
           ((and (is-dir? sprite "right")
                 (= (sprite-realX jump-sprite) (sprite-realX sprite)))
            (change-sprite-direction jump-sprite "left"))
@@ -536,6 +492,88 @@
                 (= (sprite-realX jump-sprite) (sprite-realX sprite)))
            (change-sprite-direction jump-sprite "right"))
           (else jump-sprite))))
+
+;; ENEMY-SLIME
+(define (enemy-slime-update-proc sprite)
+  (let* ((new-sprite  (cond ((is-state? sprite "stand")
+                             sprite)
+                            ((and (is-dir? sprite "right")
+                                  (is-state? sprite "jump"))
+                             (jump (move-right sprite 2) 10))
+                            ((and (is-dir? sprite "left")
+                                  (is-state? sprite "jump"))
+                             (jump (move-left sprite 2) 10)))))
+    
+  (cond ((<= (sprite-health sprite) 0)
+         ;(create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 8))
+
+         (list "pop-me"
+               (make-sprite "enemy-split" (rectangle 32 32 "solid" "green") (list (sprite-realX sprite) (sprite-realY sprite) 5 5 5 2) "jump" enemy-split-update-proc sprite-display-image 32 32 35 "left")
+               (make-sprite "enemy-split" (rectangle 32 32 "solid" "green") (list (+ (sprite-realX sprite) (sprite-width sprite)) (sprite-realY sprite) 5 5 5 2) "jump" enemy-split-update-proc sprite-display-image 32 32 35 "right")))
+
+        
+        ((and (<= (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-state new-sprite "jump"))
+        ((and (> (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-frame-counter new-sprite (- (sprite-frame-counter new-sprite) 1)))
+        ((and (= (sprite-realY new-sprite) (sprite-realY sprite))
+              (= 1 (tile-at-xy current-map (sprite-gridX new-sprite) (+ (sprite-gridY new-sprite) 1))))
+         (change-sprite-frame-counter (change-sprite-state new-sprite "stand") 35))
+        ((and (is-dir? sprite "right")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "left"))
+        ((and (is-dir? sprite "left")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "right"))
+        (else new-sprite))))
+
+;; ENEMY-SLIME-SPLIT
+(define (enemy-split-update-proc sprite)
+  (let* ((new-sprite  (cond ((is-state? sprite "stand")
+                             sprite)
+                            ((and (is-dir? sprite "right")
+                                  (is-state? sprite "jump"))
+                             (jump (move-right sprite 2) 10))
+                            ((and (is-dir? sprite "left")
+                                  (is-state? sprite "jump"))
+                             (jump (move-left sprite 2) 10)))))
+    (cond ((<= (sprite-health sprite) 0)
+           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 4))
+        
+        ((and (<= (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-state new-sprite "jump"))
+        ((and (> (sprite-frame-counter sprite) 0)
+              (is-state? sprite "stand"))
+         (change-sprite-frame-counter new-sprite (- (sprite-frame-counter new-sprite) 1)))
+        
+        ((and (equal? (move-down new-sprite (abs (sprite-velY new-sprite)) 10) new-sprite)
+              (= 1 (tile-at-xy current-map (sprite-gridX new-sprite) (+ (sprite-gridY new-sprite) 1))))
+         (change-sprite-frame-counter (change-sprite-state new-sprite "stand") 35))
+        ((and (is-dir? sprite "right")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "left"))
+        ((and (is-dir? sprite "left")
+              (= (sprite-realX new-sprite) (sprite-realX sprite)))
+         (change-sprite-direction new-sprite "right"))
+        (else new-sprite))))
+#|
+  (let* ((new-sprite (if (eq? (sprite-direction sprite) "right")
+                         (jump (move-right sprite 2) 12)
+                         (jump (move-left sprite 2) 12))))
+    (cond ((<= (sprite-health sprite) 0)
+           (create-exp (+ (sprite-realX sprite) (/ (sprite-width sprite) 2)) (sprite-realY sprite) 2))
+                 
+          ((and (is-dir? sprite "right")
+                (= (sprite-realX new-sprite) (sprite-realX sprite)))
+           (change-sprite-direction new-sprite "left"))
+          ((and (is-dir? sprite "left")
+                (= (sprite-realX new-sprite) (sprite-realX sprite)))
+           (change-sprite-direction new-sprite "right"))
+          (else new-sprite))))
+|#
 
 (define (enemy-four-update-proc sprite)
   (cond ((<= (sprite-health sprite) 0)
@@ -607,42 +645,40 @@
 
 ; DRAW FUNCTIONS
 (define (player-draw-proc sprite)
-  (if (= (modulo (player-invincibility-counter sprite) 4) 1)
-      (empty-scene 0 0)
-      (cond ;((is-state? sprite "get hurt")
-            ; (rectangle 64 64 "solid" (color 255 0 0 50)))
-            ; facing right
-            ((and (is-state? sprite "stand") (is-dir? sprite "right"))
-             (sprite-image sprite))
-            ((and (or (is-state? sprite "jump") (is-state? sprite "get hurt")) (is-dir? sprite "right") (> (sprite-velY sprite) 0))
-             player-jump-right-1)
-            ((and (or (is-state? sprite "jump") (is-state? sprite "get hurt")) (is-dir? sprite "right") (<= (sprite-velY sprite) 0))
-             player-jump-right-2)
-            ((and (>= (sprite-frame-counter sprite) 0) (is-dir? sprite "right") (< (sprite-frame-counter sprite) 6))
-             player-walk-right-1)
-            ((and (is-dir? sprite "right")
-                  (or (and (>= (sprite-frame-counter sprite) 6) (< (sprite-frame-counter sprite) 12))
-                      (and (>= (sprite-frame-counter sprite) 18) (<= (sprite-frame-counter sprite) 24))))
-             player-walk-right-2)
-            ((and (>= (sprite-frame-counter sprite) 12) (is-dir? sprite "right") (< (sprite-frame-counter sprite) 18))
-             player-walk-right-3)
-            ; facing left
-            ((and (is-state? sprite "stand") (is-dir? sprite "left"))
-             player-stand-left)
-            ((and (or (is-state? sprite "jump") (is-state? sprite "get hurt")) (is-dir? sprite "left") (> (sprite-velY sprite) 0))
-             player-jump-left-1)
-            ((and (or (is-state? sprite "jump") (is-state? sprite "get hurt")) (is-dir? sprite "left") (<= (sprite-velY sprite) 0))
-             player-jump-left-2)
-            ((and (>= (sprite-frame-counter sprite) 0) (is-dir? sprite "left") (< (sprite-frame-counter sprite) 6))
-             player-walk-left-1)
-            ((and (is-dir? sprite "left")
-                  (or (and (>= (sprite-frame-counter sprite) 6) (< (sprite-frame-counter sprite) 12))
-                      (and (>= (sprite-frame-counter sprite) 18) (<= (sprite-frame-counter sprite) 24))))
-             player-walk-left-2)
-            ((and (>= (sprite-frame-counter sprite) 12) (is-dir? sprite "left") (< (sprite-frame-counter sprite) 18))
-             player-walk-left-3)
-            (else (sprite-image sprite)))))
-  
+  (cond ((is-state? sprite "get hurt")
+         (rectangle 64 64 "solid" (color 255 0 0 50)))
+        ; facing right
+        ((and (is-state? sprite "stand") (is-dir? sprite "right"))
+         (sprite-image sprite))
+        ((and (is-state? sprite "jump") (is-dir? sprite "right") (> (sprite-velY sprite) 0))
+         player-jump-right-1)
+        ((and (is-state? sprite "jump") (is-dir? sprite "right") (<= (sprite-velY sprite) 0))
+         player-jump-right-2)
+        ((and (>= (sprite-frame-counter sprite) 0) (is-dir? sprite "right") (< (sprite-frame-counter sprite) 6))
+         player-walk-right-1)
+        ((and (is-dir? sprite "right")
+              (or (and (>= (sprite-frame-counter sprite) 6) (< (sprite-frame-counter sprite) 12))
+                  (and (>= (sprite-frame-counter sprite) 18) (<= (sprite-frame-counter sprite) 24))))
+         player-walk-right-2)
+        ((and (>= (sprite-frame-counter sprite) 12) (is-dir? sprite "right") (< (sprite-frame-counter sprite) 18))
+         player-walk-right-3)
+        ; facing left
+        ((and (is-state? sprite "stand") (is-dir? sprite "left"))
+         player-stand-left)
+        ((and (is-state? sprite "jump") (is-dir? sprite "left") (> (sprite-velY sprite) 0))
+         player-jump-left-1)
+        ((and (is-state? sprite "jump") (is-dir? sprite "left") (<= (sprite-velY sprite) 0))
+         player-jump-left-2)
+        ((and (>= (sprite-frame-counter sprite) 0) (is-dir? sprite "left") (< (sprite-frame-counter sprite) 6))
+         player-walk-left-1)
+        ((and (is-dir? sprite "left")
+              (or (and (>= (sprite-frame-counter sprite) 6) (< (sprite-frame-counter sprite) 12))
+                  (and (>= (sprite-frame-counter sprite) 18) (<= (sprite-frame-counter sprite) 24))))
+         player-walk-left-2)
+        ((and (>= (sprite-frame-counter sprite) 12) (is-dir? sprite "left") (< (sprite-frame-counter sprite) 18))
+         player-walk-left-3)
+        (else (sprite-image sprite))))
+
 (define (sprite-display-image sprite)
   (sprite-image sprite))
 
@@ -694,7 +730,10 @@
   (let ((new-sprite (if (>= (sprite-frame-counter sprite) 48)
                          (change-sprite-frame-counter sprite 0)
                          (change-sprite-frame-counter sprite (+ (sprite-frame-counter sprite) 1)))))
-        (cond ; SAVE
+        (cond ;((and up-button (or (is-state? sprite "position 1") (is-state? sprite "position 2") (is-state? sprite "position 3") (is-state? sprite "position 4")))
+              ; (set! up-button #f)
+              ; (change-sprite-frame-counter menu-cursor-pos-save (sprite-frame-counter new-sprite)))
+              ; SAVE
               ((and down-button (is-state? sprite "save position"))
                (set! down-button #f)
                (change-sprite-frame-counter menu-cursor-pos-back (sprite-frame-counter new-sprite)))
@@ -900,13 +939,13 @@
                               (make-sprite "enemy-7" (rectangle 64 64 "solid" "green") (list 1920 320  5 10 10 5) "stand" enemy-slime-update-proc sprite-display-image 64 64 35 "right")
                               
                               (make-sprite "item-next-stage" (rectangle 64 64 "solid" "yellow") '(2140 192 0 0) "float" sprite-null-update sprite-display-image 64 64 0 "left")))
-
 (define sprite-list-two (list (make-sprite "player" player-stand-right (list 64 320 0 17) "stand" player-update-proc player-draw-proc 64 64 0 "left")
                               (make-sprite "enemy-1" slim-goo-left '(640 320 0 0 10 2) "walk" enemy-walk-no-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-2" sentinel '(704 256 0 60 20 3) "shoot" enemy-four-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-3" sentinel '(1152 64 0 60 20 3) "shoot" enemy-four-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-4" slim-goo-left '(1408 192 0 0 10 2) "walk" enemy-walk-no-fall-update-proc sprite-display-image 30 64 0 "left")
                               (make-sprite "enemy-5" (rectangle 64 64 "solid" "green") (list 320 320 5 10 10 5) "stand" enemy-slime-update-proc sprite-display-image 64 64 35 "left")
+                              
                               (make-sprite "item-next-stage" (rectangle 64 64 "solid" "yellow") '(2140 192 0 0) "float" sprite-null-update sprite-display-image 64 64 0 "left")))
 (define sprite-list-three (list (make-sprite "player" player-stand-right (list 64 320 0 17) "stand" player-update-proc player-draw-proc 64 64 0 "left")))
 
