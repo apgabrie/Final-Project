@@ -181,24 +181,38 @@
                                   (else player)))
                 
                 ; prevents projectiles being shot too close together
-                (new-wait-timer (cond ((and x-button (= (get-wait-counter y) 0))
+                (new-wait-timer (cond ((and x-button (= (get-weapon y) 1) (= (get-wait-counter y) 0))
                                        3)
+                                      ((and x-button (= (get-weapon y) 2) (= (get-wait-counter y) 0))
+                                       60)
                                       ((> (get-wait-counter y) 0)
                                        (- (get-wait-counter y) 1))
                                       (else 0)))
                 
                 (enemies (filter enemy? new-sprites))
                 (projectiles (filter projectile? new-sprites))
-                (projectiles-not-touching-enemies (filter (lambda (x) (not (sprite-collides-over-list? x enemies))) projectiles))
+                (projectiles-after-collision (map (lambda (x) (if (and (not (= (sprite-damage x) 0)) (sprite-collides-over-list? x enemies))
+                                                                  (change-sprite-frame-counter x 0)
+                                                                  x))
+                                                  projectiles))
                 (new-projectiles (if (and x-button (= (get-wait-counter y) 0))
-                                     (append projectiles-not-touching-enemies (shoot-weapon player (get-exp y) (get-weapon y)))
-                                     projectiles-not-touching-enemies))
+                                     (append projectiles-after-collision
+                                             (shoot-weapon player (get-exp y) (get-weapon y)))
+                                     projectiles-after-collision))
                 
                 (enemies-after-projectiles (if (null? projectiles)
                                                enemies
                                                (projectile-collisions projectiles enemies)))
                 (items (filter item? new-sprites))
                 (new-items (filter (lambda (x) (not (sprites-collide? x player))) items))
+                (items-colliding-w-player (filter (lambda (x) (sprites-collide? x player)) items))
+                (new-inventory-items (if (eq? nil items-colliding-w-player)
+                                         nil
+                                         (map (lambda (x) (change-sprite-coords
+                                                           (change-sprite-type x (substring (sprite-type x) 5 (string-length (sprite-type x))))
+                                                           (+ 90 (* 139 (length (filter (lambda (x) (not (or (spell? x) (cursor? x)))) (get-inventory-sprites y)))))
+                                                           262))
+                                              items-colliding-w-player)))
                 
                 (exp (filter exp? new-sprites))
                 (new-exp-items (filter (lambda (x) (not (sprites-collide? x player))) exp))
@@ -216,7 +230,7 @@
                            ; new sprite-list
                            (append enemies-after-projectiles new-projectiles (list new-player) new-items new-exp-items)
                            (get-bg y) new-map-offset new-tiles-on-left (- (get-health y) damage) 
-                           (+ (get-exp y) new-exp) (get-inventory-sprites y) new-wait-timer (get-weapon y)))))
+                           (+ (get-exp y) new-exp) (append (get-inventory-sprites y) new-inventory-items) new-wait-timer (get-weapon y)))))
         ; TITLE SCREEN UPDATE
         ((eq? (get-state y) "title screen")
          (let* ((new-sprites (map (lambda (sprite) ((sprite-update sprite) sprite)) (get-sprites y)))
@@ -227,8 +241,8 @@
                               (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
                  ((and z-button (is-state? (car cursor) "continue"))
                   (set! z-button #f)
-                  (set! current-map (map-by-number (second (continue y))))
-                  (continue y))
+                  (make-world "playing" (first continue) (sprite-list-by-map-number (first continue)) bg-1 (get-map-offset y) (get-tiles-on-left y) 
+                              (second continue) (third continue) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
                  (else (change-world-sprites y new-sprites)))))
         (else y)))
 
@@ -295,34 +309,14 @@
                                                            HUD))))
 
 (define (save-world y)
+  (let ((map    (get-map y))
+        (health (get-health y))
+        (exp    (get-exp y)))
   (write-file "save.txt"
-              (string-append 
-               (number->string (get-map y)) "\n" 
-               (number->string (get-health y)) "\n" 
-               (number->string (get-exp y)) "\n"
-               (string-append* (cdr (append* (map (lambda (x) (list "\n" x))
-                                     (map car (get-inventory-sprites y)))))))))
+              (string-append (number->string map) "\n" (number->string health) "\n" (number->string exp) ))))
 
-(define (continue y)
-  (let* ((saved-variables (read-lines "save.txt"))
-         (map (string->number (first saved-variables)))
-         (health (string->number (second saved-variables)))
-         (exp (string->number (third saved-variables)))
-         (inventory-items (drop saved-variables 3))
-         (inventory-sprite-list-init (list menu-cursor-pos-1
-                                           (make-sprite "Bubble" bubble-spell '(91 119) "A simple spell. Shoots a bubble to hurt enemies." sprite-null-update sprite-display-image 64 64 0 "left"))) )
-    
-    (define (inventory-sprite-list-final inv-items ac)
-      ;;; check for items later...
-      (cond ((not (eq? (findf (lambda (x) (equal? x "Weapon 2")) inv-items) #f))
-             (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Weapon 2"))) inv-items) (append ac
-                                                                                                              (list (make-sprite "Weapon 2" bubble-spell '(230 119) "The second weapon." sprite-null-update sprite-display-image 64 64 0 "left")))))
-            ((not (eq? (findf (lambda (x) (equal? x "Weapon 3")) inv-items) #f))
-             (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Weapon 3"))) inv-items) (append ac
-                                                                                                              (list (make-sprite "Weapon 3" bubble-spell '(369 119) "The third weapon." sprite-null-update sprite-display-image 64 64 0 "left")))))
-            (else ac)))
-    
-           (make-world "playing" map (sprite-list-by-map-number map) bg-1 (get-map-offset y) (get-tiles-on-left y) health exp (inventory-sprite-list-final inventory-items inventory-sprite-list-init) (get-wait-counter y) (get-weapon y))))
+(define continue
+    (map car (read-words-and-numbers/line "save.txt")))
 
 (main (make-world "title screen" 0 title-sprite-list title-screen-bg 0 0 100 0 inventory-list-one 0 1))
 
