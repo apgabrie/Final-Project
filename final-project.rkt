@@ -110,6 +110,8 @@
         ((and (eq? (get-state y) "next stage wait") (<= (get-wait-counter y) 0))
          (set! current-map (map-by-number (+ (get-map y) 1)))
          (let ((new-spell (cond ((= (get-map y) 1) (list the-burst-spell))
+                                ((= (get-map y) 2) (set! have-dbl-jmp-item #t)
+                                                   (list the-magic-feather))
                                 (else nil))))
            (make-world "playing" (+ (get-map y) 1) (sprite-list-by-map-number (+ (get-map y) 1)) (get-bg y) 0 0 
                        (get-health y) (get-exp y) (append (get-inventory-sprites y) new-spell) 0 (get-weapon y))))
@@ -117,7 +119,7 @@
         ((and shift-button (eq? (get-state y) "playing"))
          (set! shift-button #f)
          (make-world "pause menu" (get-map y) (get-sprites y) pause-menu (get-map-offset y) (get-tiles-on-left y) 
-                     (get-health y) (get-exp y) (get-inventory-sprites y) (get-wait-counter y) (get-weapon y)))
+                     (get-health y) (get-exp y) (get-inventory-sprites y) 0 (get-weapon y)))
         ((and shift-button (eq? (get-state y) "pause menu"))
          (set! shift-button #f)
          (make-world "playing" (get-map y) (get-sprites y) bg-1 (get-map-offset y) (get-tiles-on-left y) 
@@ -149,8 +151,8 @@
                  (else (change-world-inventory-sprites y new-sprites)))))
         ; PLAYING UPDATE
         ((eq? (get-state y) "playing")
-         (let* ((new-sprites (foldr (lambda (x y) (cond ((eq? (car x) "kill-me") y)
-                                                        ((eq? (car x) "pop-me") (append (cdr x) y))
+         (let* ((new-sprites (foldr (lambda (x y) (cond ((is-type? "kill-me" x) y)
+                                                        ((is-type? "pop-me" x) (append (cdr x) y))
                                                         (else (cons x y)))) 
                                     nil
                                     (map (lambda (sprite) (if (and (> (- (sprite-realX sprite) (get-map-offset y) (* 64 (get-tiles-on-left y))) -64)
@@ -268,7 +270,7 @@
                                          "You can now double jump."))))
            ; same as in playing but also go to next stage picture
            (place-image/align 
-            (text next-level-string-1 27 'white) 190 120 'left 'top
+            (text next-level-string-1 27 'white) 198 120 'left 'top
             (place-image/align (text next-level-string-2 27 'white) 150 180 'left 'top
                                (place-image/align next-stage-picture
                                                   120 50 'left 'top
