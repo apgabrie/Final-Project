@@ -1,6 +1,7 @@
-2
-100
-31
+3
+30
+85
 cursor
 Bubble
 Burst
+Magic Feather

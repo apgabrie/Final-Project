@@ -111,7 +111,7 @@
          (set! current-map (map-by-number (+ (get-map y) 1)))
          (let ((new-spell (cond ((= (get-map y) 1) (list the-burst-spell))
                                 ((= (get-map y) 2) (set! have-dbl-jmp-item #t)
-                                                   (list the-magic-feather))
+                                                   (list (the-magic-feather (get-inventory-sprites y))))
                                 (else nil))))
            (make-world "playing" (+ (get-map y) 1) (sprite-list-by-map-number (+ (get-map y) 1)) (get-bg y) 0 0 
                        (get-health y) (get-exp y) (append (get-inventory-sprites y) new-spell) 0 (get-weapon y))))
@@ -352,8 +352,13 @@
     (define (inventory-sprite-list-final inv-items ac)
       ;;; check for items later...
       (cond ((not (eq? (findf (lambda (x) (equal? x "Burst")) inv-items) #f))
-             (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Burst"))) inv-items) (append ac
-                                                                                                              (list (make-sprite "Burst" burst-spell '(230 119) "Shoots a sphere that burst in all directions." sprite-null-update sprite-display-image 64 64 0 "left")))))
+             (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Burst"))) inv-items) 
+                                          (append ac (list the-burst-spell))))
+            
+            ((not (eq? (findf (lambda (x) (equal? x "Magic Feather")) inv-items) #f))
+             (set! have-dbl-jmp-item #t)
+             (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Magic Feather"))) inv-items) 
+                                          (append ac (list (the-magic-feather ac)))))
             #|
             ((not (eq? (findf (lambda (x) (equal? x "Weapon 3")) inv-items) #f))
              (inventory-sprite-list-final (filter (lambda (x) (not (equal? x "Weapon 3"))) inv-items) (append ac
