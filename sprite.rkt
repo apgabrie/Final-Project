@@ -950,7 +950,9 @@
 (define magic-feather (bitmap "images/menu/magic-feather.png"))
 
 (define the-burst-spell (make-sprite "Burst" burst-spell '(230 119) "Shoots a sphere that bursts in all directions." sprite-null-update sprite-display-image 64 64 0 "left"))
-(define the-magic-feather (make-sprite "Magic Feather" magic-feather '(90 262) "Makes you feel light as a feather. Lets you double jump!" sprite-null-update sprite-display-image 64 64 0 "left"))
+(define (the-magic-feather sprite-list)
+  (make-sprite "Magic Feather" magic-feather (list (set-inventory-realX sprite-list) 262) "Makes you feel light as a feather. Lets you double jump!" sprite-null-update sprite-display-image 64 64 0 "left"))
+
 
 (define slim-goo-left (bitmap "images/enemies/slim-goo.png"))
 (define slim-goo-right (bitmap "images/enemies/slim-goo-2.png"))
@@ -1003,6 +1005,17 @@
                                  ;(make-sprite "Burst" burst-spell '(230 119) "Shoots a sphere that burst in all directions." sprite-null-update sprite-display-image 64 64 0 "left")
                                  ;(make-sprite "Weapon 3" bubble-spell '(369 119) "The third weapon." sprite-null-update sprite-display-image 64 64 0 "left")
                                  ))
+
+(define (set-inventory-realX sprite-list)
+  (let ((acquired-items (filter (lambda (item) (not (spell? item))) (drop sprite-list 2))))
+    (cond ((= (length acquired-items) 0)
+           90)
+          ((= (length acquired-items) 1)
+           229)
+          ((= (length acquired-items) 2)
+           368)
+          ((= (length acquired-items) 3)
+           507))))
 
 (define (sprite-list-by-map-number list-num)
   (cond ((= list-num 1) sprite-list-one)
