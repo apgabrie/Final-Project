@@ -34,23 +34,6 @@
                       (list ai ai ai ai ai d1 ai ai ai ai ai ai w4 w3 d1 ai ai ai ai ai ai ai w4 g1 g3 g2 w3 ai ai ai ai b1 b1 ai ai ai ai w2)
                       (list d1 ai ai ai ai w4 w3 d2 ai ai ai w4 g3 g2 w3 ai d2 d1 ai d2 w4 g1 g3 g4 g4 g4 w1 b1 d2 ai d1 ai ai ai ai ai ai w2)
                       (list g1 g1 g1 g1 g1 g3 g2 g1 g1 g1 g1 g3 g4 g4 g2 g1 g1 g1 g1 g1 g3 g4 g4 g4 g4 g4 g2 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g3)))
-#|
-(define map-one (list (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai d1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai d1 ai ai ai ai ai ai w4 w3 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list d1 ai ai ai ai w4 w3 d2 ai ai ai w4 g3 w1 ai b1 b1 ai ai d2 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list g1 g1 g1 g1 g1 g3 g2 g1 g1 g1 g1 g3 g4 g2 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1)))
-|#
-  #|(list (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list w1 b1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai d1 ai ai ai ai ai b1 ai ai ai ai ai)
-                      (list w1 ai ai b1 ai ai d2 ai ai ai ai ai ai d2 ai d1 ai ai ai ai ai ai ai ai ai w4 w3 ai ai ai ai ai b1 ai ai ai ai)
-                      (list w1 ai ai ai ai ai b1 ai ai b1 ai ai w4 g1 g1 w3 ai ai ai ai ai ai ai w4 g1 g3 g2 w3 ai ai ai ai ai ai ai ai ai)
-                      (list w1 ai ai d1 ai ai ai ai d2 ai ai w4 g3 g4 g4 w1 ai ai ai ck ai ai b1 w2 g4 g4 g4 w1 d1 ai ai ai ai d1 d1 ai ai)
-                      (list g2 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g3 g4 g4 g4 g2 g1 g1 g1 w3 ai ai ai w2 g4 g4 g4 g2 g1 g1 g1 g1 g1 g1 g1 g1 g1)))|#
-
 
 (define map-two (list (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
                       (list w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
@@ -59,43 +42,16 @@
                       (list w1 ai ai ai ai ai ai d1 ai ai b1 b1 w4 g1 w3 ai ai ai w4 g1 w3 ai ai ai ai ai ai ai ai ai w2 g4 g4 g4 g2 g1 w3 ai ai ai ai ai w4 g1 g1 w3 ai ai ai ai b1 w4 g1 g1 w3 b1 ai ai ai ai ai ai)
                       (list w1 d1 d1 ai ai ai w4 g1 g1 g1 w3 b1 w2 g4 w1 ai ai w4 g3 g4 w1 ai ai ai ck ai ai ai ai w4 g3 g4 g4 g4 g4 g4 w1 ck ai ai ai b1 w2 g4 g4 w1 ai ai ai ai ai w2 g4 g4 w1 ai ai ai ai ai ai ai)
                       (list g2 g1 g1 g1 g1 g1 g3 g4 g4 g4 g2 g1 g3 g4 w1 ai ai w2 g4 g4 w1 ai ai b1 b1 ai ai w4 g1 g3 g4 g4 g4 g4 g4 g4 g2 w3 ai ai ai ai w2 g4 g4 w1 b1 ai ai ai ai w2 g4 g4 w1 ai ai ai ai ai ai ai)))
-#|
-(define map-two (list (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai w4 w3 ai ai w4 w3 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ck ai ai ai ai ai ai w2 w1 ai ai w2 w1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list g1 g1 g1 g1 g1 w3 ai ai w4 g1 g1 g1 g3 w1 ai ai w2 g2 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1)))
-|#
-#|
-(define map-three 
-                (list (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai b1 b1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai w4 w3 ai ai w4 w3 ai ai ai b1 b1 b1 ai b1 ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ck ai ai ai ai b1 b1 w2 w1 ai ai w2 g2 w3 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list g1 g1 g1 g1 g1 w3 ai ai w4 g1 g1 g1 g3 w1 ai ai w2 g4 g2 w3 ai ai ai ai ai w4 g1 g1 g1 g1 g1 g1 g1 g1 g1 g1)))
-|#
-(define map-three 
-                (list (list ai ai t1 t1 ai t1 ai ai t1 ai t1 t1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai t1 ai ai t1 t1 ai t1 ai t1 ai t1 ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai t1 t1 ai t1 ai t1 t1 ai t1 ai ai t1 ai ai ai ai ai t1 ai ai ai ai ai ai)
-                      (list ai ai t1 ai ai t1 ai ai t1 ai t1 ai ai t1 ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list ai ai t1 t1 ai t1 ai ai t1 ai t1 t1 t1 ai ai ai ai ai ck ai ai ai ai ai ck ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ck ai ai ai ai t1 ai ai ai ai ai t1 ai)
-                      (list t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 ai ai ai ai ai ai ai ai ai ai ai ai)))
 
-(define map-four 
-                (list (list ai ai ai ai ai t1 t1 t1 ai t1 t1 ai ai ai t1 t1 ai t1 t1 t1 ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai t1 ai ai t1 ai ai ai t1 ai ai ai ai t1 ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai t1 ai ai t1 t1 ai ai ai t1 ai ai ai t1 ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai t1 ai ai t1 ai ai ai ai ai t1 ai ai t1 ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai t1 ai ai t1 t1 ai ai t1 t1 ai ai ai t1 ai ai ai ai ai ai ai)
-                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai)
-                      (list t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1 t1)))
-
+(define map-three 
+                (list (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai w2) 
+                      (list ai ai ai ai ai ai ai ai ai ai ai b1 b1 ai ai b1 b1 ai ai w4 w3 ai ai ai ai ai b1 b1 b1 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai w2)
+                      (list ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai w2 w1 ck ai ai ai ai ai ai ai ai ai ai ai ai ai ai b1 b1 ai ai ai ai ai ai w4 g1 w3 ai ai ai ai ai ck ai ai ai ai b1 b1 ai ai w2)
+                      (list ai ai ai ai ai ai ck ai ai ai ai ai ai ai ai ai ai ai ai w2 g2 w3 ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai ai w4 g3 g4 g2 w3 ai ai w4 g1 w3 ai ai ai ai ai ai ai ai w2)
+                      (list ai ai ai ai ai w4 w3 ai ai ai ai ai ai b1 b1 b1 b1 ai ai w2 g4 w1 ai ai ai ai ai ai ai d2 ai ai d1 ai ai ai ai ai ai b1 b1 b1 ai w2 g4 g4 g4 g2 g1 g1 g3 g4 w1 ai ai ai ai ai ai ai ai w2)
+                      (list d1 ai ai ai w4 g3 w1 ai ai ai ai ai ai ai ai ai ai d1 ai w2 g4 w1 ai ai ai ai ai w4 g1 g1 g1 g1 g1 w3 ai d1 ai ck ai ai ai ai ai w2 g4 g4 g4 g4 g4 g4 g4 g4 w1 ai ai ai w4 w3 ai ai ai w2)
+                      (list g1 g1 g1 g1 g3 g4 w1 b1 ai ai ai ai ai ai w4 g1 g1 g1 g1 g3 g4 w1 ai ai ai ai ai w2 g4 g4 g4 g4 g4 g2 g1 g1 g1 w3 ai ai ai ai ai w2 g4 g4 g4 g4 g4 g4 g4 g4 w1 ai ai ai w2 g2 g1 g1 g1 g3)))
+;                           0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61
 (define current-map map-one)
 
 (define (choose-map map-num tiles-on-left)
@@ -108,9 +64,6 @@
   (cond ((= map-num 1) map-one)
         ((= map-num 2) map-two)
         ((= map-num 3) map-three)
-        ((= map-num 4) map-four)
-        ;((= map-num 5) map-five)
-        ;((= map-num 6) map-six)
         (else map-one)))
 
 (define (draw-map my-map img tile-offset)
